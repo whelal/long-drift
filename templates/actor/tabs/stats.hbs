@@ -111,5 +111,36 @@
         </div>
       </div>
     </div>
+
+    <div class="stats-two-col">
+      <div class="panel panel-left">
+        <h4>ROLE ABILITY</h4>
+        <div class="panel-list">
+          <label>• Role: <input class="substat-input" name="system.role.name" type="text" value="{{system.role.name}}" placeholder="Solo, Netrunner, Tech..."/></label>
+          <label>• Ability: <input class="substat-input" name="system.role.ability" type="text" value="{{system.role.ability}}" placeholder="Combat Awareness..."/></label>
+          <label>• Rank: <input class="substat-input" name="system.role.rank" type="number" min="0" max="10" step="1" value="{{system.role.rank}}"/></label>
+          <label>• Notes: <input class="substat-input" name="system.role.notes" type="text" value="{{system.role.notes}}" placeholder="Current role ability focus"/></label>
+        </div>
+      </div>
+
+      <div class="panel panel-right">
+        <h4>CRITICAL INJURIES</h4>
+        <div class="panel-list">
+          <button type="button" class="crit-injury-add"><i class="fas fa-plus"></i> Add Critical Injury</button>
+          {{#if criticalInjuries.length}}
+            {{#each criticalInjuries as |inj|}}
+              <div class="crit-injury-row" data-injury-index="{{inj.index}}" style="display:grid;grid-template-columns:1.3fr auto 1fr auto;gap:0.35rem;align-items:center;">
+                <input type="text" class="crit-injury-name" value="{{inj.name}}" placeholder="Injury name"/>
+                <label style="display:flex;align-items:center;gap:0.2rem;white-space:nowrap;">Healed <input type="checkbox" class="crit-injury-healed" {{#if inj.healed}}checked{{/if}}/></label>
+                <input type="text" class="crit-injury-notes" value="{{inj.notes}}" placeholder="Notes"/>
+                <button type="button" class="crit-injury-delete" title="Delete Injury"><i class="fas fa-trash"></i></button>
+              </div>
+            {{/each}}
+          {{else}}
+            <p class="mf-empty">No critical injuries tracked.</p>
+          {{/if}}
+        </div>
+      </div>
+    </div>
   </div>
 </div>

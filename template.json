@@ -17,6 +17,15 @@
         },
         "skills": {},
         "spells": {},
+        "role": {
+          "name": "",
+          "ability": "",
+          "rank": 4,
+          "notes": ""
+        },
+        "criticalInjuries": {
+          "entries": []
+        },
         "equipment": {
           "gear": "",
           "totalWeight": 0

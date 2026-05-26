@@ -351,6 +351,19 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       psihybrid: makeResource('psihybrid','psihybrid_current')
     };
 
+    // RED role ability tracking and critical injury list.
+    ctx.system.role ??= { name: '', ability: '', rank: 4, notes: '' };
+    ctx.system.criticalInjuries ??= { entries: [] };
+    const injuryEntries = Array.isArray(ctx.system.criticalInjuries.entries)
+      ? ctx.system.criticalInjuries.entries
+      : [];
+    ctx.criticalInjuries = injuryEntries.map((entry, index) => ({
+      index,
+      name: String(entry?.name || ''),
+      healed: !!entry?.healed,
+      notes: String(entry?.notes || '')
+    }));
+
     // Legacy inline skills object (still supported, but prefer Item skills)
     ctx.system.skills ??= {};
     for (const [key, sk] of Object.entries(ctx.system.skills)) {
@@ -590,6 +603,11 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     html.on("click", ".seed-skills", ev => this._onSeedSkills(ev));
   html.on("click", ".custom-skill-add", ev => this._onAddCustomSkill(ev));
   html.on("click", ".custom-skill-delete", ev => this._onDeleteCustomSkill(ev));
+  html.on("click", ".crit-injury-add", ev => this._onAddCriticalInjury(ev));
+  html.on("click", ".crit-injury-delete", ev => this._onDeleteCriticalInjury(ev));
+  html.on("change", ".crit-injury-name", ev => this._onChangeCriticalInjuryField(ev));
+  html.on("change", ".crit-injury-healed", ev => this._onChangeCriticalInjuryField(ev));
+  html.on("change", ".crit-injury-notes", ev => this._onChangeCriticalInjuryField(ev));
   html.on("click", ".link-token-button", ev => this._onLinkTokenClick(ev));
   html.on("click", ".unlink-token-button", ev => this._onUnlinkTokenClick(ev));
   // Paperdoll region clicks
@@ -1299,6 +1317,78 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       console.error('long-drift | Failed to delete custom skill', e);
       ui.notifications.error(game.i18n.localize('MF.ErrorDeleteCustomSkill') || 'Failed to delete custom skill');
     }
+  }
+
+  _getCriticalInjuries() {
+    const list = this.actor.system?.criticalInjuries?.entries;
+    return Array.isArray(list) ? list.map(entry => ({
+      name: String(entry?.name || ''),
+      healed: !!entry?.healed,
+      notes: String(entry?.notes || '')
+    })) : [];
+  }
+
+  async _onAddCriticalInjury(ev) {
+    ev.preventDefault();
+    let name = '';
+    try {
+      const result = await Dialog.prompt({
+        title: 'Add Critical Injury',
+        content: `
+          <p>Injury Name</p>
+          <input type="text" name="injuryName" value="" style="width:100%;" placeholder="Broken Arm, Collapsed Lung..."/>
+        `,
+        label: 'Add',
+        callback: html => String(html.find("[name='injuryName']").val() || '').trim()
+      });
+      name = String(result || '').trim();
+    } catch (_) {
+      return;
+    }
+    if (!name) return;
+
+    const entries = this._getCriticalInjuries();
+    entries.push({ name, healed: false, notes: '' });
+    await this.actor.update({ 'system.criticalInjuries.entries': entries });
+    this.render(false);
+  }
+
+  async _onDeleteCriticalInjury(ev) {
+    ev.preventDefault();
+    const row = ev.currentTarget.closest('[data-injury-index]');
+    if (!row) return;
+    const index = Number(row.dataset.injuryIndex);
+    if (!Number.isInteger(index) || index < 0) return;
+
+    const entries = this._getCriticalInjuries();
+    if (index >= entries.length) return;
+    entries.splice(index, 1);
+    await this.actor.update({ 'system.criticalInjuries.entries': entries });
+    this.render(false);
+  }
+
+  async _onChangeCriticalInjuryField(ev) {
+    const input = ev.currentTarget;
+    const row = input.closest('[data-injury-index]');
+    if (!row) return;
+    const index = Number(row.dataset.injuryIndex);
+    if (!Number.isInteger(index) || index < 0) return;
+
+    const entries = this._getCriticalInjuries();
+    const current = entries[index];
+    if (!current) return;
+
+    if (input.classList.contains('crit-injury-name')) {
+      current.name = String(input.value || '');
+    } else if (input.classList.contains('crit-injury-healed')) {
+      current.healed = !!input.checked;
+    } else if (input.classList.contains('crit-injury-notes')) {
+      current.notes = String(input.value || '');
+    } else {
+      return;
+    }
+
+    await this.actor.update({ 'system.criticalInjuries.entries': entries });
   }
 
 

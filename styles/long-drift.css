@@ -16,6 +16,218 @@
   margin: 0.25rem 0.5rem 0.5rem !important;
   padding: 0 !important;
 }
+
+/* RED-inspired shell layout */
+.long-drift.sheet.actor.red-shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0.5rem;
+  background: #d9d9d9;
+  border: 4px solid #b30000;
+  padding: 0.35rem;
+  min-height: 640px;
+}
+
+.long-drift.sheet.actor .red-sidebar {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 0.35rem;
+  background: #ececec;
+  border: 3px solid #b30000;
+  padding: 0.35rem;
+}
+
+.long-drift.sheet.actor .red-portrait-wrap {
+  background: #1a1e26;
+  border: 3px solid #b30000;
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+}
+
+.long-drift.sheet.actor .red-portrait {
+  width: calc(100% - 0.5rem);
+  height: 250px;
+  object-fit: cover;
+  border: 2px solid #b30000;
+}
+
+.long-drift.sheet.actor .red-name-card {
+  background: #efefef;
+  border: 2px solid #b30000;
+  padding: 0.35rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.long-drift.sheet.actor .red-name-input,
+.long-drift.sheet.actor .red-role-input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  font-weight: 700;
+  color: #111;
+}
+
+.long-drift.sheet.actor .red-name-input {
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+.long-drift.sheet.actor .red-role-input {
+  font-size: 1.1rem;
+  border-top: 1px solid #b30000;
+  padding-top: 0.2rem;
+}
+
+.long-drift.sheet.actor .red-vitals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+}
+
+.long-drift.sheet.actor .red-vital {
+  background: #ececec;
+  border: 2px solid #b30000;
+  padding: 0.25rem;
+  display: grid;
+  gap: 0.1rem;
+  text-align: center;
+}
+
+.long-drift.sheet.actor .red-vital .label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #202020;
+}
+
+.long-drift.sheet.actor .red-vital .value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.long-drift.sheet.actor .red-vital.red-vital-wide {
+  grid-column: 1 / -1;
+}
+
+.long-drift.sheet.actor .red-stats-rail {
+  display: grid;
+  gap: 0.25rem;
+  align-content: start;
+}
+
+.long-drift.sheet.actor .red-stat {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  border: 2px solid #b30000;
+  background: #efefef;
+  color: #111;
+  padding: 0.2rem 0.35rem;
+  font-weight: 700;
+}
+
+.long-drift.sheet.actor .red-stat span {
+  font-size: 0.9rem;
+}
+
+.long-drift.sheet.actor .red-stat strong {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.long-drift.sheet.actor .red-sidebar-actions {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.long-drift.sheet.actor .red-sidebar-actions button {
+  border: 2px solid #b30000;
+  background: #222;
+  color: #f7f7f7;
+  font-weight: 600;
+}
+
+.long-drift.sheet.actor .red-main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.long-drift.sheet.actor .red-tabs {
+  background: #151515;
+  border: 2px solid #b30000;
+  padding: 0.15rem !important;
+}
+
+.long-drift.sheet.actor .red-tabs .item {
+  border: 1px solid #b30000;
+  background: #2a2a2a;
+  color: #e9e9e9;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.long-drift.sheet.actor .red-tabs .item.active,
+.long-drift.sheet.actor .red-tabs .item:hover {
+  background: #b30000;
+  color: #fff;
+}
+
+.long-drift.sheet.actor .red-body {
+  background: #e6e6e6;
+  border: 2px solid #b30000;
+  min-width: 0;
+}
+
+/* Skills table theme pass to align with RED reference vibe */
+.long-drift.sheet.actor .tab.skills .skills-table-wrapper {
+  border: 2px solid #b30000;
+  background: #f3f3f3;
+}
+
+.long-drift.sheet.actor .tab.skills .skills-table thead th {
+  background: #0d0d0d;
+  color: #f0f0f0;
+  border-bottom: 2px solid #b30000;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.long-drift.sheet.actor .tab.skills .skill-category-divider {
+  background: #121212;
+  color: #fff;
+  border-top: 2px solid #b30000;
+  border-bottom: 1px solid #b30000;
+  text-transform: none;
+  font-size: 1.05rem;
+}
+
+.long-drift.sheet.actor .tab.skills .skills-table tbody tr:nth-child(even):not(.skill-category-row) {
+  background: #f2cbc2;
+}
+
+.long-drift.sheet.actor .tab.skills .skills-table tbody tr:nth-child(odd):not(.skill-category-row) {
+  background: #f0f0f0;
+}
+
+@media (max-width: 980px) {
+  .long-drift.sheet.actor.red-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .long-drift.sheet.actor .red-sidebar {
+    grid-template-rows: auto;
+  }
+
+  .long-drift.sheet.actor .red-stats-rail {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
 /* =========================
    Mekton Fusion – Sheet CSS
    DRY + themeable + mobile-friendly
