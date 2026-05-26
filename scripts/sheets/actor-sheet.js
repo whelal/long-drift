@@ -37,6 +37,8 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       skills: { favOnly: false, sortBy: 'name', dir: 'asc' }
     };
     this._viewStateLoaded = false;
+    this._autoFitObserver = null;
+    this._autoFitRAF = null;
   }
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
@@ -59,6 +61,73 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const s = String(v).replace(/,/g, "").trim();
     const n = Number(s);
     return Number.isFinite(n) ? n : fallback;
+  }
+
+  _fitInputFontSize(input, options = {}) {
+    if (!input) return;
+    const computed = Number.parseFloat(globalThis.getComputedStyle?.(input)?.fontSize || "14") || 14;
+    if (!input.dataset.fitBase || !Number.isFinite(Number(input.dataset.fitBase))) {
+      input.dataset.fitBase = String(computed);
+    }
+
+    const basePx = Number(input.dataset.fitBase) || computed;
+    const maxPx = Number(options.maxPx ?? input.dataset.fitMax ?? basePx);
+    const minPx = Number(options.minPx ?? input.dataset.fitMin ?? 10);
+    const stepPx = Number(options.stepPx ?? 0.5);
+
+    if (input.clientWidth <= 0) return;
+
+    input.style.fontSize = `${maxPx}px`;
+    if (!input.value) return;
+
+    let size = maxPx;
+    while (size > minPx && input.scrollWidth > input.clientWidth - 4) {
+      size -= stepPx;
+      input.style.fontSize = `${size}px`;
+    }
+  }
+
+  _applyAutoFitInputs(root) {
+    const container = root?.[0] ?? root;
+    if (!container?.querySelectorAll) return;
+    const inputs = container.querySelectorAll('.auto-fit-input');
+    inputs.forEach(input => this._fitInputFontSize(input));
+  }
+
+  _scheduleAutoFitInputs(root) {
+    if (this._autoFitRAF) {
+      cancelAnimationFrame(this._autoFitRAF);
+      this._autoFitRAF = null;
+    }
+
+    this._autoFitRAF = requestAnimationFrame(() => {
+      this._autoFitRAF = null;
+      this._applyAutoFitInputs(root);
+    });
+  }
+
+  _setupAutoFitObserver(html) {
+    const container = html?.[0] ?? html;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+
+    if (this._autoFitObserver) {
+      this._autoFitObserver.disconnect();
+      this._autoFitObserver = null;
+    }
+
+    this._autoFitObserver = new ResizeObserver(() => this._scheduleAutoFitInputs(container));
+    this._autoFitObserver.observe(container);
+  }
+
+  _teardownAutoFitObserver() {
+    if (this._autoFitObserver) {
+      this._autoFitObserver.disconnect();
+      this._autoFitObserver = null;
+    }
+    if (this._autoFitRAF) {
+      cancelAnimationFrame(this._autoFitRAF);
+      this._autoFitRAF = null;
+    }
   }
 
   static normalizeStatKey(stat) {
@@ -176,6 +245,35 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       }
       const mvNum = Number.isFinite(Number(mv)) ? parseInt(mv, 10) : 0;
       formData["system.substats.initiative"] = mvNum;
+
+      // Normalize role/meta numeric fields that can arrive as empty strings
+      // (e.g. submitOnChange after editing portrait).
+      const normalizeIntField = (key, fallback) => {
+        let val = formData[key];
+        if (Array.isArray(val)) {
+          const nonEmpty = val.filter(v => v !== '' && v !== null && v !== undefined);
+          val = nonEmpty.length ? nonEmpty[nonEmpty.length - 1] : val[val.length - 1];
+        }
+        if (val === '' || val === null || val === undefined) {
+          val = fallback;
+        }
+        formData[key] = Number.isFinite(Number(val)) ? parseInt(val, 10) : fallback;
+      };
+
+      normalizeIntField("system.role.rank", Number(this.actor.system?.role?.rank ?? 4));
+      normalizeIntField("system.meta.points", Number(this.actor.system?.meta?.points ?? 0));
+      normalizeIntField("system.meta.reputation", Number(this.actor.system?.meta?.reputation ?? 0));
+      normalizeIntField("system.meta.eurobucks", Number(this.actor.system?.meta?.eurobucks ?? 500));
+
+      // Core stat values can come through as arrays when multiple tabs include the same fields.
+      // Coerce all to integers so DataModel schema validation always receives numbers.
+      const statKeys = ["INT", "REF", "DEX", "TECH", "COOL", "WILL", "LUCK", "MOVE", "BODY", "EMP"];
+      for (const stat of statKeys) {
+        normalizeIntField(
+          `system.stats.${stat}.value`,
+          Number(this.actor.system?.stats?.[stat]?.value ?? 0)
+        );
+      }
     } catch (e) {
       console.warn('long-drift | Failed to normalize substats before update', e);
     }
@@ -499,7 +597,16 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([category, skills]) => ({ category, skills: skills.sort((a,b)=>a.name.localeCompare(b.name)) }));
 
+    const skillGroupsLeft = [];
+    const skillGroupsRight = [];
+    grouped.forEach((group, index) => {
+      if (index % 2 === 0) skillGroupsLeft.push(group);
+      else skillGroupsRight.push(group);
+    });
+
     ctx.skillGroups = grouped;
+    ctx.skillGroupsLeft = skillGroupsLeft;
+    ctx.skillGroupsRight = skillGroupsRight;
     ctx.customSkills = customSkills || [];
   ctx.skillItems = flatSkills; // full flat list (pre-tab filtering, for potential use)
     // Render the skills table if either grouped non-PSI skills or custom skills exist.
@@ -564,6 +671,9 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     super.activateListeners(html);
     if (!this.isEditable) return;
 
+    this._scheduleAutoFitInputs(html);
+    this._setupAutoFitObserver(html);
+
     // Runtime fallback: ensure the Substats block is placed under the Stats tab.
     // Some older or cached templates may leave the markup in the header; move it into the stats container so it displays correctly.
     try {
@@ -610,6 +720,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
   html.on("change", ".crit-injury-notes", ev => this._onChangeCriticalInjuryField(ev));
   html.on("click", ".link-token-button", ev => this._onLinkTokenClick(ev));
   html.on("click", ".unlink-token-button", ev => this._onUnlinkTokenClick(ev));
+  html.on("input change", ".auto-fit-input", ev => this._fitInputFontSize(ev.currentTarget));
   // Paperdoll region clicks
   html.on('click', '.paperdoll-svg .pd-region', ev => this._onPaperdollClick(ev));
     // Legacy: also support newer .hit-zone elements in the redesigned body tab
@@ -819,6 +930,11 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     // (Category collapse feature removed)
     // Refresh body item icons now that listeners are attached
     try { this._refreshBodyItemIcons(); } catch (e) { /* ignore */ }
+  }
+
+  async close(options = {}) {
+    this._teardownAutoFitObserver();
+    return super.close(options);
   }
 
   /** Focus the inputs for a paperdoll location when the SVG region is clicked */

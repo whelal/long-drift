@@ -26,6 +26,10 @@
         "criticalInjuries": {
           "entries": []
         },
+        "meta": {
+          "reputation": 0,
+          "eurobucks": 500
+        },
         "equipment": {
           "gear": "",
           "totalWeight": 0

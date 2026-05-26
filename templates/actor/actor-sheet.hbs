@@ -1,12 +1,12 @@
-<form class="{{cssClass}} flexcol red-shell" autocomplete="off">
+<form class="{{cssClass}} red-shell" autocomplete="off">
   <aside class="red-sidebar">
     <div class="red-portrait-wrap">
       <img class="profile red-portrait" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" alt="{{actor.name}}" />
     </div>
 
     <div class="red-name-card">
-      <input class="red-name-input" name="name" type="text" value="{{actor.name}}" placeholder="{{localize 'MF.Name'}}"/>
-      <input class="red-role-input" name="system.role.name" type="text" value="{{system.role.name}}" placeholder="Role"/>
+      <input class="red-name-input auto-fit-input" name="name" type="text" value="{{actor.name}}" placeholder="{{localize 'MF.Name'}}" data-fit-min="12"/>
+      <input class="red-role-input auto-fit-input" name="system.role.name" type="text" value="{{system.role.name}}" placeholder="Role" data-fit-min="11"/>
     </div>
 
     <div class="red-vitals-grid">
@@ -19,6 +19,10 @@
         <span class="value">{{system.substats.humanity}}</span>
       </div>
       <div class="red-vital">
+        <span class="label">Wound State</span>
+        <span class="value">{{#if (gt system.substats.hp_current 0)}}Stable{{else}}Critical{{/if}}</span>
+      </div>
+      <div class="red-vital">
         <span class="label">Death Save</span>
         <span class="value">{{system.substats.death}}</span>
       </div>
@@ -26,23 +30,21 @@
         <span class="label">I.P.</span>
         <span class="value">{{system.meta.points}}</span>
       </div>
-      <div class="red-vital red-vital-wide">
-        <span class="label">Role Ability Rank</span>
-        <span class="value">{{system.role.rank}}</span>
+      <div class="red-vital">
+        <span class="label">Reputation</span>
+        <span class="value">{{system.meta.reputation}}</span>
       </div>
-    </div>
-
-    <div class="red-stats-rail">
-      <div class="red-stat"><span>INT</span><strong>{{system.stats.INT.value}}</strong></div>
-      <div class="red-stat"><span>REF</span><strong>{{system.stats.REF.value}}</strong></div>
-      <div class="red-stat"><span>DEX</span><strong>{{system.stats.DEX.value}}</strong></div>
-      <div class="red-stat"><span>TECH</span><strong>{{system.stats.TECH.value}}</strong></div>
-      <div class="red-stat"><span>COOL</span><strong>{{system.stats.COOL.value}}</strong></div>
-      <div class="red-stat"><span>WILL</span><strong>{{system.stats.WILL.value}}</strong></div>
-      <div class="red-stat"><span>LUCK</span><strong>{{system.stats.LUCK.value}}</strong></div>
-      <div class="red-stat"><span>MOVE</span><strong>{{system.stats.MOVE.value}}</strong></div>
-      <div class="red-stat"><span>BODY</span><strong>{{system.stats.BODY.value}}</strong></div>
-      <div class="red-stat"><span>EMP</span><strong>{{system.stats.EMP.value}}</strong></div>
+      <div class="red-vital red-vital-wide red-vital-edit">
+        <span class="label">Role Ability Rank</span>
+        <input class="value-input auto-fit-input" name="system.role.rank" type="number" min="0" max="10" step="1" value="{{system.role.rank}}" data-fit-min="10"/>
+      </div>
+      <div class="red-vital red-vital-wide red-vital-edit">
+        <span class="label">Eurobucks</span>
+        <input class="value-input auto-fit-input" name="system.meta.eurobucks" type="number" min="0" step="1" value="{{system.meta.eurobucks}}" data-fit-min="10"/>
+      </div>
+      <div class="red-vital red-vital-wide red-vital-search">
+        <input class="value-input auto-fit-input" type="text" value="" placeholder="Search skills, gear, etc." data-fit-min="9"/>
+      </div>
     </div>
 
     <div class="red-sidebar-actions">
@@ -53,12 +55,12 @@
 
   <section class="red-main">
     <nav class="sheet-tabs tabs red-tabs">
-      <a class="item" data-tab="stats">{{localize 'MF.TabStats'}}</a>
-      <a class="item" data-tab="combat">{{localize 'MF.TabCombat'}}</a>
       <a class="item" data-tab="skills">{{localize 'MF.TabSkills'}}</a>
+      <a class="item" data-tab="equipment">Gear</a>
       <a class="item" data-tab="body">{{localize 'MF.TabMekton'}}</a>
-      <a class="item" data-tab="equipment">{{localize 'MF.TabEquipment' 'Equipment'}}</a>
-      <a class="item" data-tab="notes">{{localize 'MF.TabNotes' 'Notes'}}</a>
+      <a class="item" data-tab="notes">Effects</a>
+      <a class="item" data-tab="combat">{{localize 'MF.TabCombat'}}</a>
+      <a class="item" data-tab="stats">{{localize 'MF.TabStats'}}</a>
     </nav>
 
     <section class="sheet-body red-body">

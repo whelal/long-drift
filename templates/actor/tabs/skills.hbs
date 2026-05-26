@@ -28,83 +28,86 @@
     {{/unless}}
   </div>
   {{#if hasSkillItems}}
-    <div class="skills-table-wrapper" aria-label="All Skills" role="region">
-    <table class="skills-table all-skills" role="table">
-      <colgroup>
-        <col /> <!-- Fav -->
-        <col /> <!-- Name -->
-        <col /> <!-- Stat -->
-        <col /> <!-- Rank -->
-        <col /> <!-- IP -->
-        <col /> <!-- Total -->
-        <col /> <!-- Roll -->
-        <col /> <!-- Edit -->
-      </colgroup>
-      <thead>
-        <tr>
-          <th scope="col">{{localize 'MF.ColFav'}}</th>
-          <th scope="col">{{localize 'MF.ColName'}}</th>
-          <th scope="col">{{localize 'MF.ColStat'}}</th>
-          <th scope="col">{{localize 'MF.ColRank'}}</th>
-          <th scope="col" class="col-ip">{{localize 'MF.ColIP'}}</th>
-          <th scope="col" class="col-total">{{localize 'MF.ColTotal'}}</th>
-          <th scope="col">{{localize 'MF.Roll'}}</th>
-          <th scope="col" aria-label="Actions"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each skillGroups as |group|}}
-          <tr class="skill-category-row" data-category="{{group.category}}">
-            <th colspan="8" class="skill-category-divider" scope="colgroup">
-              {{#if (eq group.category 'REF:COMBAT')}}Combat{{else}}{{#if (eq group.category 'REF:MECHA')}}Mecha{{else}}{{#if (eq group.category 'REF:UTILITY')}}Utility{{else}}{{localize (concat 'MF.SkillCat.' group.category) fallback=group.category}}{{/if}}{{/if}}{{/if}}
-            </th>
-          </tr>
-          {{#each group.skills as |sk|}}
-            <tr data-skill-id="{{sk.id}}" class="skill-item-row" data-favorite="{{sk.favorite}}" data-category="{{group.category}}" role="row">
-              <td class="skill-fav-cell"><a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a></td>
-              <td class="skill-name">
-                {{sk.name}} {{#if (and sk.hard (not sk.hasHardMarker))}}<span class="hard-flag" title="Hard Skill">(H)</span>{{/if}}
-              </td>
-              <td class="skill-stat">{{sk.stat}}</td>
-              <td class="skill-rank-cell"><input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/></td>
-              <td class="skill-ip-cell"><input class="skill-ip short-input" type="number" min="0" max="999" step="1" value="{{sk.system.ip}}" title="{{localize 'MF.IPTooltip'}}"/></td>
-              <td class="skill-total">{{sk.total}}</td>
-              <td class="skill-roll-cell"><button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button></td>
-              <td class="skill-edit"><a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-edit"></i></a></td>
-            </tr>
-          {{/each}}
+    <div class="skills-two-col">
+      <div class="skills-col">
+        {{#each skillGroupsLeft as |group|}}
+          <section class="skill-group-block" data-category="{{group.category}}">
+            <header class="skill-group-head">
+              <span class="group-title">{{#if (eq group.category 'REF:COMBAT')}}Fighting Skills{{else}}{{#if (eq group.category 'REF:MECHA')}}Mecha Skills{{else}}{{#if (eq group.category 'REF:UTILITY')}}Control Skills{{else}}{{localize (concat 'MF.SkillCat.' group.category) fallback=group.category}}{{/if}}{{/if}}{{/if}}</span>
+              <span class="group-cols">MOD&nbsp;&nbsp;LVL&nbsp;&nbsp;Base</span>
+            </header>
+            <div class="group-body">
+              {{#each group.skills as |sk|}}
+                <div data-skill-id="{{sk.id}}" class="skill-item-row skill-row-compact" data-favorite="{{sk.favorite}}" data-category="{{group.category}}" role="row">
+                  <a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a>
+                  <div class="skill-name-wrap">
+                    <span class="skill-stat-chip">{{sk.stat}}</span>
+                    <span class="skill-name">{{sk.name}}</span>
+                  </div>
+                  <input class="skill-ip short-input" type="number" min="0" max="999" step="1" value="{{sk.system.ip}}" title="{{localize 'MF.IPTooltip'}}"/>
+                  <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
+                  <span class="skill-total">{{sk.total}}</span>
+                  <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
+                  <a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-thumbtack"></i></a>
+                </div>
+              {{/each}}
+            </div>
+          </section>
         {{/each}}
-        {{!-- Custom Skills Section (gather skills with system.custom true & not PSI) --}}
-        {{#if customSkills.length}}
-        <tr class="skill-category-row" data-category="CUSTOM">
-          <th colspan="8" class="skill-category-divider" scope="colgroup">{{localize 'MF.CustomSkillsCategory'}}
-            <button type="button" class="custom-skill-add" title="{{localize 'MF.AddCustomSkill'}}">+</button>
-          </th>
-        </tr>
-        {{#each customSkills as |sk|}}
-          <tr data-skill-id="{{sk.id}}" class="skill-item-row" data-favorite="{{sk.favorite}}" data-category="CUSTOM" role="row">
-            <td class="skill-fav-cell"><a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a></td>
-            <td class="skill-name">{{sk.name}} {{#if (and sk.hard (not sk.hasHardMarker))}}<span class="hard-flag" title="Hard Skill">(H)</span>{{/if}}</td>
-            <td class="skill-stat">{{sk.stat}}</td>
-            <td class="skill-rank-cell"><input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/></td>
-            <td class="skill-ip-cell"><input class="skill-ip short-input" type="number" min="0" max="999" step="1" value="{{sk.system.ip}}" title="{{localize 'MF.IPTooltip'}}"/></td>
-            <td class="skill-total">{{sk.total}}</td>
-            <td class="skill-roll-cell"><button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button></td>
-            <td class="skill-edit">
-              <a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-edit"></i></a>
-              <a class="item-control custom-skill-delete" title="{{localize 'MF.Delete'}}" data-item-id="{{sk.id}}"><i class="fas fa-trash"></i></a>
-            </td>
-          </tr>
+      </div>
+
+      <div class="skills-col">
+        {{#each skillGroupsRight as |group|}}
+          <section class="skill-group-block" data-category="{{group.category}}">
+            <header class="skill-group-head">
+              <span class="group-title">{{#if (eq group.category 'REF:COMBAT')}}Fighting Skills{{else}}{{#if (eq group.category 'REF:MECHA')}}Mecha Skills{{else}}{{#if (eq group.category 'REF:UTILITY')}}Control Skills{{else}}{{localize (concat 'MF.SkillCat.' group.category) fallback=group.category}}{{/if}}{{/if}}{{/if}}</span>
+              <span class="group-cols">MOD&nbsp;&nbsp;LVL&nbsp;&nbsp;Base</span>
+            </header>
+            <div class="group-body">
+              {{#each group.skills as |sk|}}
+                <div data-skill-id="{{sk.id}}" class="skill-item-row skill-row-compact" data-favorite="{{sk.favorite}}" data-category="{{group.category}}" role="row">
+                  <a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a>
+                  <div class="skill-name-wrap">
+                    <span class="skill-stat-chip">{{sk.stat}}</span>
+                    <span class="skill-name">{{sk.name}}</span>
+                  </div>
+                  <input class="skill-ip short-input" type="number" min="0" max="999" step="1" value="{{sk.system.ip}}" title="{{localize 'MF.IPTooltip'}}"/>
+                  <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
+                  <span class="skill-total">{{sk.total}}</span>
+                  <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
+                  <a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-thumbtack"></i></a>
+                </div>
+              {{/each}}
+            </div>
+          </section>
         {{/each}}
-        {{else}}
-        <tr class="skill-category-row" data-category="CUSTOM">
-          <th colspan="8" class="skill-category-divider" scope="colgroup">{{localize 'MF.CustomSkillsCategory'}}
-            <button type="button" class="custom-skill-add" title="{{localize 'MF.AddCustomSkill'}}">+</button>
-          </th>
-        </tr>
-        {{/if}}
-      </tbody>
-    </table>
+
+        <section class="skill-group-block" data-category="CUSTOM">
+          <header class="skill-group-head">
+            <span class="group-title">{{localize 'MF.CustomSkillsCategory'}}</span>
+            <span class="group-cols"><button type="button" class="custom-skill-add" title="{{localize 'MF.AddCustomSkill'}}">+</button></span>
+          </header>
+          <div class="group-body">
+            {{#each customSkills as |sk|}}
+              <div data-skill-id="{{sk.id}}" class="skill-item-row skill-row-compact" data-favorite="{{sk.favorite}}" data-category="CUSTOM" role="row">
+                <a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a>
+                <div class="skill-name-wrap">
+                  <span class="skill-stat-chip">{{sk.stat}}</span>
+                  <span class="skill-name">{{sk.name}}</span>
+                </div>
+                <input class="skill-ip short-input" type="number" min="0" max="999" step="1" value="{{sk.system.ip}}" title="{{localize 'MF.IPTooltip'}}"/>
+                <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
+                <span class="skill-total">{{sk.total}}</span>
+                <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
+                <span class="skill-custom-actions">
+                  <a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-thumbtack"></i></a>
+                  <a class="item-control custom-skill-delete" title="{{localize 'MF.Delete'}}" data-item-id="{{sk.id}}"><i class="fas fa-trash"></i></a>
+                </span>
+              </div>
+            {{/each}}
+          </div>
+        </section>
+      </div>
     </div>
   {{else}}
     <p class="mf-empty">{{localize 'MF.NoSkills'}}</p>

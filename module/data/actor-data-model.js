@@ -5,7 +5,9 @@ export class ActorDataModel extends foundry.abstract.DataModel {
             meta: new fields.SchemaField({
                 role: new fields.StringField({initial: ""}),
                 age: new fields.NumberField({initial: 25, min: 0, integer: true}),
-                points: new fields.NumberField({initial: 0, min: 0, integer: true})
+                points: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                reputation: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                eurobucks: new fields.NumberField({initial: 500, min: 0, integer: true})
             }),
             role: new fields.SchemaField({
                 name: new fields.StringField({ initial: "" }),
