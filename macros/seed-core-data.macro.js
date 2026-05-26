@@ -1,5 +1,5 @@
 ﻿// Long Drift: Seed Core Data macro
-// Drop this into a Script Macro (or load via hotbar) to rebuild default skills and spells.
+// Drop this into a Script Macro (or load via hotbar) to rebuild default skills.
 (async () => {
   const modulePath = foundry.utils.getRoute("systems/long-drift/module/seed.js");
   try {

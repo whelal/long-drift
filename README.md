@@ -22,7 +22,7 @@ Current focus areas:
 - DataModel-backed actor/item structures (Foundry v13+)
 - Manual and automatic seed workflows
 - Localization scaffold in lang/en.json
-- One-time world migration for legacy stat keys on skills/spells
+- One-time world migration for legacy stat keys on skills
 
 ---
 ## Roadmap
@@ -69,7 +69,7 @@ system: {
   - EDU -> INT
   - PSI -> WILL
 - The migration is version-gated via world setting `long-drift.migrationVersion`.
-- World seeding populates `Long Drift Core Skills` and `Long Drift Core Powers`.
+- World seeding populates `Long Drift Core Skills`.
 - New actors can be synchronized with baseline seeded data.
 
 Re-run seeding world-wide (console):

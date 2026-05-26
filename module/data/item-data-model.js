@@ -9,7 +9,7 @@ export class ItemDataModel extends foundry.abstract.DataModel {
   }
 }
 
-// Schema for weapon and mecha-weapon items
+// Schema for weapon items
 export class WeaponDataModel extends ItemDataModel {
   static defineSchema() {
     const fields = foundry.data.fields;
@@ -38,21 +38,6 @@ export class SkillDataModel extends ItemDataModel {
       favorite: new fields.BooleanField({ initial: false }),
       ip: new fields.NumberField({ initial: 0, integer: true }),
       hard: new fields.BooleanField({ initial: false })
-    });
-  }
-}
-
-// Schema for spell items
-export class SpellDataModel extends ItemDataModel {
-  static defineSchema() {
-    const fields = foundry.data.fields;
-    const parentSchema = super.defineSchema();
-    return foundry.utils.mergeObject(parentSchema, {
-      school: new fields.StringField({ initial: "Sign" }),
-      cost: new fields.NumberField({ initial: 0, integer: true }),
-      effect: new fields.StringField({ initial: "" }),
-      test: new fields.StringField({ initial: "INT" }),
-      favorite: new fields.BooleanField({ initial: false })
     });
   }
 }

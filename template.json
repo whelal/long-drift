@@ -16,7 +16,6 @@
           "EMP": { "value": 5 }
         },
         "skills": {},
-        "spells": {},
         "role": {
           "name": "",
           "ability": "",
@@ -99,7 +98,7 @@
     "npc": { "templates": ["base"] }
   },
   "Item": {
-    "types": ["skill", "spell", "weapon", "mecha-weapon", "armor"],
+    "types": ["skill", "weapon", "armor"],
     "templates": {
       "base": {
         "description": "",
@@ -118,11 +117,6 @@
       "note": "",
       "isMecha": false
     },
-    "armor": { "templates": ["base"] },
-    "spell": {
-      "templates": ["base"],
-      "school": "",
-      "staminaCost": 0
-    }
+    "armor": { "templates": ["base"] }
   }
 }

@@ -819,7 +819,6 @@ html.theme-dark .long-drift {
 
 /* ---------- Custom flags & rows ---------- */
 .long-drift.sheet.actor .custom-skill { background: var(--mf-gold-bg); }
-.long-drift.sheet.actor .custom-spell { background: var(--mf-purple-bg); }
 .long-drift.sheet.actor .custom-flag { color: #ff6b35; font-weight: bold; margin-left: 0.25rem; font-size: 0.9rem; }
 
 /* ---------- Drag/Sort ---------- */

@@ -25,40 +25,14 @@ function buildSkillPatch(item) {
   return changed ? patch : null;
 }
 
-function buildSpellPatch(item) {
-  const patch = { _id: item.id };
-  let changed = false;
-
-  const sourceStat = String(item.system?.stat || item.system?.test || "INT").toUpperCase();
-  const normalized = normalizeStatKey(sourceStat);
-
-  const currentStat = String(item.system?.stat || "").toUpperCase();
-  if (!currentStat || currentStat !== normalized) {
-    patch["system.stat"] = normalized;
-    changed = true;
-  }
-
-  const hasLegacyTest = item.system?.test !== undefined && item.system?.test !== null;
-  if (hasLegacyTest) {
-    const currentTest = String(item.system.test || "").toUpperCase();
-    if (currentTest !== normalized) {
-      patch["system.test"] = normalized;
-      changed = true;
-    }
-  }
-
-  return changed ? patch : null;
-}
-
 function buildItemPatch(item) {
   if (item.type === "skill") return buildSkillPatch(item);
-  if (item.type === "spell") return buildSpellPatch(item);
   return null;
 }
 
 async function migrateActorItems(actor) {
   const updates = actor.items
-    .filter(item => item.type === "skill" || item.type === "spell")
+    .filter(item => item.type === "skill")
     .map(buildItemPatch)
     .filter(Boolean);
 
@@ -71,7 +45,7 @@ async function migrateWorldItems() {
   let updated = 0;
   const items = game.items?.contents || [];
   for (const item of items) {
-    if (item.type !== "skill" && item.type !== "spell") continue;
+    if (item.type !== "skill") continue;
     const patch = buildItemPatch(item);
     if (!patch) continue;
     const { _id, ...updateData } = patch;

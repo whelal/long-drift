@@ -1,5 +1,4 @@
 import { LONG_DRIFT_CORE_SKILLS } from "./data/skills.js";
-import { LONG_DRIFT_CORE_POWERS } from "./data/spells.js";
 
 
 const HARD_MECHA_GUNNERY = "Mecha Gunnery (H)";
@@ -8,7 +7,6 @@ const LEGACY_MECHA_GUNNERY_NAMES = ["Mecha Gunnery", "Mecha Gunnery [H]"];
 // Legacy skill renames introduced in 0.0.10
 const LEGACY_SKILL_RENAMES = {
   "Resist Magic": "Resist Magic (2)",
-  "Spellcasting": "Spellcasting (2)",
   "Military Intelligence": "Expert: Military Intelligence"
 };
 // Deprecated skill names to purge (non-PSI duplicates)
@@ -42,26 +40,11 @@ function prepareSkillSystem(source = {}) {
   return sys;
 }
 
-function prepareSpellSystem(source = {}) {
-  const sys = foundry.utils.deepClone(source);
-  if (sys.school === undefined || sys.school === null) sys.school = "Sign";
-  if (sys.cost === undefined || sys.cost === null) sys.cost = 0;
-  if (sys.effect === undefined || sys.effect === null) sys.effect = "";
-  if (sys.test) sys.test = normalizeStatKey(sys.test);
-  else sys.test = "INT";
-  if (sys.favorite === undefined || sys.favorite === null) sys.favorite = false;
-  return sys;
-}
-
 function normaliseSeedData(entry, folderId) {
   const { data, system, ...rest } = entry;
   const type = rest.type ?? entry.type;
   const baseSystem = foundry.utils.deepClone(system ?? data ?? {});
-  const sys = type === "skill"
-    ? prepareSkillSystem(baseSystem)
-    : type === "spell"
-      ? prepareSpellSystem(baseSystem)
-      : baseSystem;
+  const sys = type === "skill" ? prepareSkillSystem(baseSystem) : baseSystem;
 
   return {
     ...rest,
@@ -168,47 +151,8 @@ async function ensureActorHasSkills(actor) {
   return { created: toCreate.length, updated: toUpdate.length };
 }
 
-async function ensureActorHasSpells(actor) {
-  if (!actor) return { created: 0, updated: 0 };
-  const allowedTypes = new Set(["character", "npc"]);
-  if (!allowedTypes.has(actor.type)) return { created: 0, updated: 0 };
-
-  const defaultSpells = LONG_DRIFT_CORE_POWERS.map(spell => ({
-    name: spell.name,
-    type: "spell",
-    system: prepareSpellSystem(spell.system ?? spell.data ?? {})
-  }));
-
-  const existingByName = new Map(
-    actor.items.filter(it => it.type === "spell").map(it => [it.name, it])
-  );
-  const toCreate = [];
-  const toUpdate = [];
-
-  for (const spell of defaultSpells) {
-    const current = existingByName.get(spell.name);
-    if (!current) {
-      toCreate.push(spell);
-      continue;
-    }
-
-    const needsUpdate = !foundry.utils.objectsEqual(current.system ?? {}, spell.system);
-    if (needsUpdate) toUpdate.push({ _id: current.id, system: spell.system });
-  }
-
-  if (toCreate.length) await actor.createEmbeddedDocuments("Item", toCreate);
-  if (toUpdate.length) await actor.updateEmbeddedDocuments("Item", toUpdate);
-
-  return { created: toCreate.length, updated: toUpdate.length };
-}
-
 async function ensureActorHasCoreItems(actor) {
-  const skillResult = await ensureActorHasSkills(actor);
-  const spellResult = await ensureActorHasSpells(actor);
-  return {
-    created: skillResult.created + spellResult.created,
-    updated: skillResult.updated + spellResult.updated
-  };
+  return ensureActorHasSkills(actor);
 }
 
 export async function syncActorCoreItems(actor) {
@@ -218,7 +162,6 @@ export async function syncActorCoreItems(actor) {
 export async function seedWorldData() {
   try {
     const skillFolder = await ensureFolder("Long Drift Core Skills", "Item");
-    const spellFolder = await ensureFolder("Long Drift Core Powers", "Item");
     const defaultSkillNames = new Set(LONG_DRIFT_CORE_SKILLS.map(skill => skill.name));
 
     const existing = new Map(game.items.map(item => [item.name, item]));
@@ -277,11 +220,10 @@ export async function seedWorldData() {
     };
 
     for (const s of LONG_DRIFT_CORE_SKILLS) processEntry(s, skillFolder.id);
-    for (const sp of LONG_DRIFT_CORE_POWERS) processEntry(sp, spellFolder.id);
 
     if (toCreate.length) {
       await Item.createDocuments(toCreate);
-      ui.notifications.info(`Seeded ${toCreate.length} Items (skills/spells).`);
+      ui.notifications.info(`Seeded ${toCreate.length} Items (skills).`);
     }
 
     if (updates.length) {

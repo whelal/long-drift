@@ -1,10 +1,10 @@
 ## [Unreleased]
 ### Changed
-- Seeding now uses `Long Drift Core Skills` and `Long Drift Core Powers` naming for world folders and defaults.
+- Seeding now uses `Long Drift Core Skills` naming for world folders and defaults.
 - Settings text for seeding updated to reference Long Drift core data instead of legacy labels.
 
 ### Added
-- One-time world migration (`migrationVersion` v1) to normalize legacy skill/spell stat keys to RED-compatible keys.
+- One-time world migration (`migrationVersion` v1) to normalize legacy skill stat keys to RED-compatible keys.
 
 ### Migration
 - Legacy stat keys are remapped during migration:
@@ -43,7 +43,7 @@
 - Decimal support for movement substats (`run`, `leap`, `swim`) allowing fractional values.
 
 ### Changed
-- Skill renames: `Military Intelligence` -> `Expert: Military Intelligence`; `Spellcasting` -> `Spellcasting (2)`; `Resist Magic` -> `Resist Magic (2)`.
+- Skill renames: `Military Intelligence` -> `Expert: Military Intelligence`; `Resist Magic` -> `Resist Magic (2)`.
 - Expanded input width for large numeric substats (`--mf-input-w-lg` 56px→70px).
 
 ### Removed
