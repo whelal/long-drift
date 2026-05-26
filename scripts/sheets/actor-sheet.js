@@ -1,5 +1,8 @@
 // module/script/sheets/actor-sheet.js
 import { STAT_DEFAULT_VALUES, applyStatDefaults } from "../../module/data/defaults.js";
+import { LONG_DRIFT_CORE_SKILLS } from "../../module/data/skills.js";
+
+const CPR_CORE_SKILL_NAMES = new Set(LONG_DRIFT_CORE_SKILLS.map(skill => skill.name));
 
 export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
   // Sort by .system.sort (or .item.system.sort), then by name
@@ -8,6 +11,20 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const bs = Number(b.system?.sort ?? b.item?.system?.sort ?? 999999);
     if (as !== bs) return as - bs;
     return collator.compare(a.name, b.name);
+  }
+
+  async _purgeNonCprSkills() {
+    if (!this.actor || !this.isEditable) return 0;
+
+    const staleSkills = this.actor.items.filter(it => {
+      if (it.type !== "skill") return false;
+      if (it.system?.custom) return false;
+      return !CPR_CORE_SKILL_NAMES.has(it.name);
+    });
+
+    if (!staleSkills.length) return 0;
+    await this.actor.deleteEmbeddedDocuments("Item", staleSkills.map(it => it.id));
+    return staleSkills.length;
   }
 
   _refreshBodyItemIcons() {
@@ -61,6 +78,13 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const s = String(v).replace(/,/g, "").trim();
     const n = Number(s);
     return Number.isFinite(n) ? n : fallback;
+  }
+
+  // Keep display text fields readable by dropping punctuation-only junk values.
+  static _cleanDisplayText(v) {
+    const s = String(v ?? '').trim();
+    if (!s) return '';
+    return /[\p{L}\p{N}]/u.test(s) ? s : '';
   }
 
   _fitInputFontSize(input, options = {}) {
@@ -226,6 +250,28 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     
     // Normalize substats to preserve decimal values for run/leap/swim
     try {
+      // Text fields can arrive as arrays when duplicate inputs bind to the same path.
+      // Collapse to a single value to avoid Array.toString() introducing commas.
+      const normalizeTextField = (key, fallback = '') => {
+        let val = formData[key];
+        if (Array.isArray(val)) {
+          const cleaned = val.map(v => String(v ?? '').trim());
+          const nonEmpty = cleaned.filter(v => v.length > 0);
+          val = nonEmpty.length ? nonEmpty[nonEmpty.length - 1] : cleaned[cleaned.length - 1] ?? '';
+        }
+        if (val === null || val === undefined) val = fallback;
+        val = String(val).trim();
+        // Repair old artifact from duplicate-field array serialization (",", ",,", etc.).
+        if (key === 'system.role.name') {
+          val = val.replace(/^[\s,]+|[\s,]+$/g, '');
+        }
+        formData[key] = val;
+      };
+
+      normalizeTextField('system.role.name', String(this.actor.system?.role?.name ?? ''));
+      normalizeTextField('system.role.ability', String(this.actor.system?.role?.ability ?? ''));
+      normalizeTextField('system.role.notes', String(this.actor.system?.role?.notes ?? ''));
+
       const decimalFields = ['run', 'leap', 'swim'];
       for (const field of decimalFields) {
         const key = `system.substats.${field}`;
@@ -365,6 +411,17 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
   async getData(options = {}) {
     const ctx = await super.getData(options);
     ctx.actor = this.actor;
+
+    // Migration enforcement: remove legacy non-CPR built-in skills from this actor.
+    try {
+      const removed = await this._purgeNonCprSkills();
+      if (removed > 0) {
+        ui.notifications.info(`Removed ${removed} non-CPR skills from ${this.actor.name}`);
+      }
+    } catch (e) {
+      console.warn("long-drift | Failed to purge non-CPR skills", e);
+    }
+
     ctx.system = this.actor.system ?? {};
     ctx.items = this.actor.items ?? [];
     ctx.editable = this.isEditable;
@@ -451,6 +508,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     // RED role ability tracking and critical injury list.
     ctx.system.role ??= { name: '', ability: '', rank: 4, notes: '' };
+    ctx.system.role.name = this.constructor._cleanDisplayText(ctx.system.role.name);
     ctx.system.criticalInjuries ??= { entries: [] };
     const injuryEntries = Array.isArray(ctx.system.criticalInjuries.entries)
       ? ctx.system.criticalInjuries.entries
@@ -523,6 +581,61 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
         const nameHasHard = /\(H\)|\[H\]/i.test(it.name);
         const hard = !!it.system?.hard || nameHasHard;
         const custom = !!it.system?.custom; // Track custom/homebrew powers
+
+        const resolveDisplayCategory = (skillName, skillStat, originalCategory, isCustom) => {
+          if (isCustom) return 'CUSTOM';
+          if (originalCategory === 'PSI') return 'PSI';
+
+          const name = String(skillName || '').toLowerCase();
+          if ([
+            'conceal/reveal object', 'lip reading', 'perception', 'tracking'
+          ].includes(name)) return 'AWARENESS';
+          if ([
+            'athletics', 'contortionist', 'endurance', 'resist torture/drugs', 'stealth'
+          ].includes(name)) return 'BODY';
+          if ([
+            'drive land vehicle', 'pilot air vehicle (x2)', 'pilot sea vehicle', 'riding'
+          ].includes(name)) return 'CONTROL';
+          if ([
+            'accounting', 'animal handling', 'bureaucracy', 'business', 'composition', 'criminology',
+            'cryptography', 'deduction', 'education', 'gamble', 'language: streetslang',
+            'library search', 'local expert', 'science', 'tactics', 'wilderness survival'
+          ].includes(name)) return 'EDUCATION';
+          if ([
+            'brawling', 'evasion', 'martial arts (x2)', 'melee weapon'
+          ].includes(name)) return 'FIGHTING';
+          if ([
+            'acting', 'dance', 'paint/draw/sculpt', 'photography/film'
+          ].includes(name)) return 'PERFORMANCE';
+          if ([
+            'archery', 'autofire (x2)', 'handgun', 'heavy weapons', 'shoulder arms'
+          ].includes(name)) return 'RANGED';
+          if ([
+            'bribery', 'conversation', 'human perception', 'interrogation', 'personal grooming',
+            'persuasion', 'streetwise', 'trading', 'wardrobe & style'
+          ].includes(name)) return 'SOCIAL';
+          if ([
+            'air vehicle tech', 'basic tech', 'cybertech', 'demolitions (x2)', 'electronics/security tech',
+            'first aid', 'forgery', 'land vehicle tech', 'paramedic (x2)', 'pick lock',
+            'pick pocket', 'sea vehicle tech', 'weaponstech'
+          ].includes(name)) return 'TECHNIQUE';
+
+          const fallbackByStat = {
+            INT: 'EDUCATION',
+            REF: 'RANGED',
+            DEX: 'FIGHTING',
+            TECH: 'TECHNIQUE',
+            COOL: 'SOCIAL',
+            WILL: 'BODY',
+            EMP: 'SOCIAL',
+            BODY: 'BODY',
+            MOVE: 'CONTROL',
+            LUCK: 'SOCIAL'
+          };
+          return fallbackByStat[skillStat] || originalCategory || 'EDUCATION';
+        };
+
+        const displayCategory = resolveDisplayCategory(it.name, stat, category, custom);
         return {
           id: it.id,
           name: it.name,
@@ -533,14 +646,16 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
           item: it,
           system: it.system,
           category,
+          displayCategory,
           hard,
           hasHardMarker: nameHasHard,
           custom
         };
       });
 
-    // Keep only non-PSI skills in the active Skills tab.
-    let nonPsi = flatSkills.filter(sk => sk.category !== 'PSI');
+    // Keep only CPR skills in the active Skills tab (plus custom skills).
+    let nonPsi = flatSkills.filter(sk => sk.custom || CPR_CORE_SKILL_NAMES.has(sk.name));
+    nonPsi = nonPsi.filter(sk => sk.category !== 'PSI');
 
     // Favorites filtering per tab
     if (vsSkills.favOnly) nonPsi = nonPsi.filter(sk => sk.favorite);
@@ -590,11 +705,19 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     // Group non-PSI categories (custom skills removed above)
     const byCategory = new Map();
     for (const sk of nonPsi) {
-      if (!byCategory.has(sk.category)) byCategory.set(sk.category, []);
-      byCategory.get(sk.category).push(sk);
+      if (!byCategory.has(sk.displayCategory)) byCategory.set(sk.displayCategory, []);
+      byCategory.get(sk.displayCategory).push(sk);
     }
+    const cyberpunkRedCategoryOrder = ["AWARENESS", "BODY", "CONTROL", "EDUCATION", "FIGHTING", "PERFORMANCE", "RANGED", "SOCIAL", "TECHNIQUE"];
     const grouped = Array.from(byCategory.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
+      .sort((a, b) => {
+        const ai = cyberpunkRedCategoryOrder.indexOf(a[0]);
+        const bi = cyberpunkRedCategoryOrder.indexOf(b[0]);
+        const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+        const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+        if (aRank !== bRank) return aRank - bRank;
+        return a[0].localeCompare(b[0]);
+      })
       .map(([category, skills]) => ({ category, skills: skills.sort((a,b)=>a.name.localeCompare(b.name)) }));
 
     const skillGroupsLeft = [];
@@ -709,7 +832,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     html.on("click", ".skill-roll", ev => this._onRollSkill(ev));
     html.on("click", ".skill-fav", ev => this._onToggleFavorite(ev));
     html.on("change", ".skill-rank", ev => this._onChangeSkillRank(ev));
-    html.on("change", ".skill-ip", ev => this._onChangeSkillIP(ev));
     html.on("click", ".seed-skills", ev => this._onSeedSkills(ev));
   html.on("click", ".custom-skill-add", ev => this._onAddCustomSkill(ev));
   html.on("click", ".custom-skill-delete", ev => this._onDeleteCustomSkill(ev));
@@ -1066,15 +1188,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       },
       default: 'confirm'
     }).render(true);
-  }
-
-  /** Handle IP input changes for skills */
-  async _onChangeSkillIP(ev) {
-    const input = ev.currentTarget;
-    const li = input.closest("[data-skill-id]"); if (!li) return;
-    const skill = this.actor.items.get(li.dataset.skillId); if (!skill) return;
-    const val = MektonActorSheet._num(input.value, 0);
-    await skill.update({ "system.ip": val });
   }
 
   /* ---------- Body tab actions ---------- */
