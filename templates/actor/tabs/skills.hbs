@@ -33,8 +33,11 @@
         {{#each skillGroupsLeft as |group|}}
           <section class="skill-group-block" data-category="{{group.category}}">
             <header class="skill-group-head">
-              <span class="group-title">{{#if (eq group.category 'REF:COMBAT')}}Fighting Skills{{else}}{{#if (eq group.category 'REF:MECHA')}}Mecha Skills{{else}}{{#if (eq group.category 'REF:UTILITY')}}Control Skills{{else}}{{localize (concat 'MF.SkillCat.' group.category) fallback=group.category}}{{/if}}{{/if}}{{/if}}</span>
-              <span class="group-cols">MOD&nbsp;&nbsp;LVL&nbsp;&nbsp;Base</span>
+              <span class="group-spacer"></span>
+              <span class="group-title">{{localize (concat 'MF.SkillGroup.' group.category) fallback=group.category}}</span>
+              <span class="group-col-label group-col-rank">LVL</span>
+              <span class="group-col-label group-col-total">Base</span>
+              <span class="group-spacer"></span>
             </header>
             <div class="group-body">
               {{#each group.skills as |sk|}}
@@ -44,11 +47,9 @@
                     <span class="skill-stat-chip">{{sk.stat}}</span>
                     <span class="skill-name">{{sk.name}}</span>
                   </div>
-                  <input class="skill-ip short-input" type="number" min="0" max="999" step="1" value="{{sk.system.ip}}" title="{{localize 'MF.IPTooltip'}}"/>
                   <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
                   <span class="skill-total">{{sk.total}}</span>
                   <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
-                  <a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-thumbtack"></i></a>
                 </div>
               {{/each}}
             </div>
@@ -60,8 +61,11 @@
         {{#each skillGroupsRight as |group|}}
           <section class="skill-group-block" data-category="{{group.category}}">
             <header class="skill-group-head">
-              <span class="group-title">{{#if (eq group.category 'REF:COMBAT')}}Fighting Skills{{else}}{{#if (eq group.category 'REF:MECHA')}}Mecha Skills{{else}}{{#if (eq group.category 'REF:UTILITY')}}Control Skills{{else}}{{localize (concat 'MF.SkillCat.' group.category) fallback=group.category}}{{/if}}{{/if}}{{/if}}</span>
-              <span class="group-cols">MOD&nbsp;&nbsp;LVL&nbsp;&nbsp;Base</span>
+              <span class="group-spacer"></span>
+              <span class="group-title">{{localize (concat 'MF.SkillGroup.' group.category) fallback=group.category}}</span>
+              <span class="group-col-label group-col-rank">LVL</span>
+              <span class="group-col-label group-col-total">Base</span>
+              <span class="group-spacer"></span>
             </header>
             <div class="group-body">
               {{#each group.skills as |sk|}}
@@ -71,11 +75,9 @@
                     <span class="skill-stat-chip">{{sk.stat}}</span>
                     <span class="skill-name">{{sk.name}}</span>
                   </div>
-                  <input class="skill-ip short-input" type="number" min="0" max="999" step="1" value="{{sk.system.ip}}" title="{{localize 'MF.IPTooltip'}}"/>
                   <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
                   <span class="skill-total">{{sk.total}}</span>
                   <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
-                  <a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-thumbtack"></i></a>
                 </div>
               {{/each}}
             </div>
@@ -95,11 +97,10 @@
                   <span class="skill-stat-chip">{{sk.stat}}</span>
                   <span class="skill-name">{{sk.name}}</span>
                 </div>
-                <input class="skill-ip short-input" type="number" min="0" max="999" step="1" value="{{sk.system.ip}}" title="{{localize 'MF.IPTooltip'}}"/>
                 <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
                 <span class="skill-total">{{sk.total}}</span>
-                <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
                 <span class="skill-custom-actions">
+                  <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
                   <a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-thumbtack"></i></a>
                   <a class="item-control custom-skill-delete" title="{{localize 'MF.Delete'}}" data-item-id="{{sk.id}}"><i class="fas fa-trash"></i></a>
                 </span>

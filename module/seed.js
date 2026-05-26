@@ -80,6 +80,7 @@ async function ensureActorHasSkills(actor) {
     type: "skill",
     system: prepareSkillSystem(skill.system ?? skill.data ?? {})
   }));
+  const defaultSkillNames = new Set(defaultSkills.map(s => s.name));
 
   const existingSkills = actor.items.filter(it => it.type === "skill");
   // Perform legacy rename pass BEFORE building name map so new names don't conflict
@@ -99,7 +100,23 @@ async function ensureActorHasSkills(actor) {
     try { await actor.deleteEmbeddedDocuments('Item', toRemove.map(i=>i.id)); }
     catch (e) { console.warn('long-drift | Failed deleting deprecated skills', e); }
   }
-  const existingByName = new Map(existingSkills.map(it => [it.name, it]));
+  // Replace legacy built-in skill set with the current canonical list.
+  // Preserve only custom skills; all non-custom built-ins not in the default RED list are removed.
+  const staleCoreSkills = actor.items.filter(it => {
+    if (it.type !== "skill") return false;
+    if (it.system?.custom) return false;
+    if (defaultSkillNames.has(it.name)) return false;
+    return true;
+  });
+  if (staleCoreSkills.length) {
+    try {
+      await actor.deleteEmbeddedDocuments("Item", staleCoreSkills.map(i => i.id));
+    } catch (e) {
+      console.warn("long-drift | Failed deleting stale core skills", e);
+    }
+  }
+
+  const existingByName = new Map(actor.items.filter(it => it.type === "skill").map(it => [it.name, it]));
   const hardSkill = existingByName.get(HARD_MECHA_GUNNERY);
   const legacyNames = LEGACY_MECHA_GUNNERY_NAMES;
   const toDelete = [];
@@ -202,6 +219,7 @@ export async function seedWorldData() {
   try {
     const skillFolder = await ensureFolder("Long Drift Core Skills", "Item");
     const spellFolder = await ensureFolder("Long Drift Core Powers", "Item");
+    const defaultSkillNames = new Set(LONG_DRIFT_CORE_SKILLS.map(skill => skill.name));
 
     const existing = new Map(game.items.map(item => [item.name, item]));
     // World-level legacy renames (Items in compendium/world item directory)
@@ -215,6 +233,16 @@ export async function seedWorldData() {
         } catch (e) { console.warn('long-drift | Failed world skill legacy rename', oldName, '->', newName, e); }
       }
     }
+    const staleWorldSkills = game.items.filter(item => {
+      if (item.type !== "skill") return false;
+      if (defaultSkillNames.has(item.name)) return false;
+      return true;
+    });
+    if (staleWorldSkills.length) {
+      await Item.deleteDocuments(staleWorldSkills.map(item => item.id));
+      for (const item of staleWorldSkills) existing.delete(item.name);
+    }
+
     const legacyNames = LEGACY_MECHA_GUNNERY_NAMES;
     const hardSkill = existing.get(HARD_MECHA_GUNNERY);
     let canonicalSkill = hardSkill ?? null;
