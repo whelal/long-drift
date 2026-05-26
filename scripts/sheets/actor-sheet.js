@@ -19,6 +19,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const staleSkills = this.actor.items.filter(it => {
       if (it.type !== "skill") return false;
       if (it.system?.custom) return false;
+      if (String(it.system?.category || "").toUpperCase() === "CUSTOM") return false;
       return !CPR_CORE_SKILL_NAMES.has(it.name);
     });
 
@@ -51,7 +52,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     super(...args);
     // Skills tab view state; loaded from actor flag lazily.
     this._tabViewState = {
-      skills: { favOnly: false, sortBy: 'name', dir: 'asc' }
+      skills: { favOnly: false }
     };
     this._viewStateLoaded = false;
     this._autoFitObserver = null;
@@ -572,7 +573,8 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       .filter(i => i.type === "skill")
       .map(it => {
         let stat = this.constructor.normalizeStatKey(it.system?.stat || "REF");
-        const category = (it.system?.category || stat).toUpperCase();
+        const rawCategory = String(it.system?.category || stat);
+        const category = rawCategory.toUpperCase();
         // If category is PSI, force stat to WILL for RED compatibility.
         if (category === 'PSI' && stat !== 'WILL') { stat = 'WILL'; needsPsiFix = true; }
         const statVal = ctx.system.stats?.[stat]?.value ?? 0;
@@ -580,59 +582,73 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
         const total = statVal + rank;
         const nameHasHard = /\(H\)|\[H\]/i.test(it.name);
         const hard = !!it.system?.hard || nameHasHard;
-        const custom = !!it.system?.custom; // Track custom/homebrew powers
+        const custom = !!it.system?.custom || category === 'CUSTOM'; // Track custom skills (legacy-safe)
 
         const resolveDisplayCategory = (skillName, skillStat, originalCategory, isCustom) => {
           if (isCustom) return 'CUSTOM';
           if (originalCategory === 'PSI') return 'PSI';
 
+          const categoryMap = {
+            AWARENESS: 'Awareness',
+            BODY: 'Body',
+            CONTROL: 'Control',
+            EDUCATION: 'Education',
+            FIGHTING: 'Fighting',
+            PERFORMANCE: 'Performance',
+            RANGED: 'Ranged Weapon',
+            RANGED_WEAPON: 'Ranged Weapon',
+            SOCIAL: 'Social',
+            TECHNIQUE: 'Technique'
+          };
+          if (categoryMap[originalCategory]) return categoryMap[originalCategory];
+
           const name = String(skillName || '').toLowerCase();
           if ([
             'conceal/reveal object', 'lip reading', 'perception', 'tracking'
-          ].includes(name)) return 'AWARENESS';
+          ].includes(name)) return 'Awareness';
           if ([
-            'athletics', 'contortionist', 'endurance', 'resist torture/drugs', 'stealth'
-          ].includes(name)) return 'BODY';
+            'athletics', 'contortionist', 'endurance', 'resist torture/drugs', 'stealth', 'swimming'
+          ].includes(name)) return 'Body';
           if ([
-            'drive land vehicle', 'pilot air vehicle (x2)', 'pilot sea vehicle', 'riding'
-          ].includes(name)) return 'CONTROL';
+            'drive land vehicle', 'pilot air vehicle', 'pilot air vehicle (x2)', 'pilot sea vehicle', 'riding'
+          ].includes(name)) return 'Control';
           if ([
-            'accounting', 'animal handling', 'bureaucracy', 'business', 'composition', 'criminology',
-            'cryptography', 'deduction', 'education', 'gamble', 'language: streetslang',
-            'library search', 'local expert', 'science', 'tactics', 'wilderness survival'
-          ].includes(name)) return 'EDUCATION';
+            'accounting', 'bureaucracy', 'business', 'composition', 'criminology',
+            'cryptography', 'deduction', 'education', 'language: streetslang',
+            'library search', 'local expert', 'science', 'wilderness survival'
+          ].includes(name)) return 'Education';
           if ([
             'brawling', 'evasion', 'martial arts (x2)', 'melee weapon'
-          ].includes(name)) return 'FIGHTING';
+          ].includes(name)) return 'Fighting';
           if ([
-            'acting', 'dance', 'paint/draw/sculpt', 'photography/film'
-          ].includes(name)) return 'PERFORMANCE';
+            'acting', 'dance', 'paint/draw/sculpt', 'photography/film', 'play instrument'
+          ].includes(name)) return 'Performance';
           if ([
             'archery', 'autofire (x2)', 'handgun', 'heavy weapons', 'shoulder arms'
-          ].includes(name)) return 'RANGED';
+          ].includes(name)) return 'Ranged Weapon';
           if ([
             'bribery', 'conversation', 'human perception', 'interrogation', 'personal grooming',
             'persuasion', 'streetwise', 'trading', 'wardrobe & style'
-          ].includes(name)) return 'SOCIAL';
+          ].includes(name)) return 'Social';
           if ([
             'air vehicle tech', 'basic tech', 'cybertech', 'demolitions (x2)', 'electronics/security tech',
             'first aid', 'forgery', 'land vehicle tech', 'paramedic (x2)', 'pick lock',
             'pick pocket', 'sea vehicle tech', 'weaponstech'
-          ].includes(name)) return 'TECHNIQUE';
+          ].includes(name)) return 'Technique';
 
           const fallbackByStat = {
-            INT: 'EDUCATION',
-            REF: 'RANGED',
-            DEX: 'FIGHTING',
-            TECH: 'TECHNIQUE',
-            COOL: 'SOCIAL',
-            WILL: 'BODY',
-            EMP: 'SOCIAL',
-            BODY: 'BODY',
-            MOVE: 'CONTROL',
-            LUCK: 'SOCIAL'
+            INT: 'Education',
+            REF: 'Ranged Weapon',
+            DEX: 'Fighting',
+            TECH: 'Technique',
+            COOL: 'Social',
+            WILL: 'Body',
+            EMP: 'Social',
+            BODY: 'Body',
+            MOVE: 'Control',
+            LUCK: 'Social'
           };
-          return fallbackByStat[skillStat] || originalCategory || 'EDUCATION';
+          return fallbackByStat[skillStat] || rawCategory || 'Education';
         };
 
         const displayCategory = resolveDisplayCategory(it.name, stat, category, custom);
@@ -660,41 +676,8 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     // Favorites filtering per tab
     if (vsSkills.favOnly) nonPsi = nonPsi.filter(sk => sk.favorite);
 
-    // Sorting helper
-    function sortList(list, sortBy, dir) {
-      const factor = dir === 'desc' ? -1 : 1;
-      list.sort((a, b) => {
-        // primary: saved manual order
-        const order = (Number(a.system?.sort ?? 999999) - Number(b.system?.sort ?? 999999));
-        if (order !== 0) return order;
-
-        let av, bv;
-        let cmp;
-        switch (sortBy) {
-          case 'stat':
-            av = a.stat; bv = b.stat;
-            cmp = collator.compare(av, bv);
-            if (cmp !== 0) return cmp * factor;
-            // Fallback to name, apply factor
-            return collator.compare(a.name, b.name) * factor;
-          case 'rank':
-            av = a.rank; bv = b.rank;
-            cmp = (av - bv) * factor;
-            if (cmp !== 0) return cmp;
-            return collator.compare(a.name, b.name) * factor;
-          case 'total':
-            av = a.total; bv = b.total;
-            cmp = (av - bv) * factor;
-            if (cmp !== 0) return cmp;
-            return collator.compare(a.name, b.name) * factor;
-          case 'name':
-          default:
-            av = a.name; bv = b.name;
-            return collator.compare(av, bv) * factor;
-        }
-      });
-    }
-    sortList(nonPsi, vsSkills.sortBy, vsSkills.dir);
+    // Keep skills in persistent manual order, with name as a stable fallback.
+    nonPsi.sort((a, b) => MektonActorSheet.bySortThenName(a, b, collator));
 
   // Extract custom (non-PSI) skills so they can render in their own section at the bottom.
   // We do this AFTER sorting so customSkills preserve the active sort order.
@@ -708,7 +691,18 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       if (!byCategory.has(sk.displayCategory)) byCategory.set(sk.displayCategory, []);
       byCategory.get(sk.displayCategory).push(sk);
     }
-    const cyberpunkRedCategoryOrder = ["AWARENESS", "BODY", "CONTROL", "EDUCATION", "FIGHTING", "PERFORMANCE", "RANGED", "SOCIAL", "TECHNIQUE"];
+    const cyberpunkRedCategoryOrder = ["Awareness", "Body", "Control", "Education", "Fighting", "Performance", "Ranged Weapon", "Social", "Technique"];
+    const skillGroupLocalizeKey = {
+      "Awareness": "MF.SkillGroup.AWARENESS",
+      "Body": "MF.SkillGroup.BODY",
+      "Control": "MF.SkillGroup.CONTROL",
+      "Education": "MF.SkillGroup.EDUCATION",
+      "Fighting": "MF.SkillGroup.FIGHTING",
+      "Performance": "MF.SkillGroup.PERFORMANCE",
+      "Ranged Weapon": "MF.SkillGroup.RANGED",
+      "Social": "MF.SkillGroup.SOCIAL",
+      "Technique": "MF.SkillGroup.TECHNIQUE"
+    };
     const grouped = Array.from(byCategory.entries())
       .sort((a, b) => {
         const ai = cyberpunkRedCategoryOrder.indexOf(a[0]);
@@ -718,7 +712,11 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (aRank !== bRank) return aRank - bRank;
         return a[0].localeCompare(b[0]);
       })
-      .map(([category, skills]) => ({ category, skills: skills.sort((a,b)=>a.name.localeCompare(b.name)) }));
+      .map(([category, skills]) => ({
+        category,
+        localizeKey: skillGroupLocalizeKey[category],
+        skills: skills.sort((a,b)=>a.name.localeCompare(b.name))
+      }));
 
     const skillGroupsLeft = [];
     const skillGroupsRight = [];
@@ -735,29 +733,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     // Render the skills table if either grouped non-PSI skills or custom skills exist.
     // This avoids hiding rollable custom skills when the non-PSI grouped list is empty.
     ctx.hasSkillItems = nonPsi.length > 0 || ctx.customSkills.length > 0;
-    
-    // Filter mecha combat skills for the mecha tab
-    const mechaSkillNames = {
-      piloting: 'Mecha Piloting (H)',
-      fighting: 'Mecha Fighting (H)',
-      melee: 'Mecha Melee (H)',
-      gunnery: 'Mecha Gunnery (H)',
-      missiles: 'Mecha Missiles (H)'
-    };
-    ctx.mechaSkills = {};
-    for (const [key, skillName] of Object.entries(mechaSkillNames)) {
-      const skill = flatSkills.find(sk => sk.name === skillName);
-      if (skill) {
-        ctx.mechaSkills[key] = skill;
-      } else {
-        // Provide defaults if skill doesn't exist
-        ctx.mechaSkills[key] = { name: skillName, rank: 0, total: 0 };
-      }
-    }
-    // Compute Mecha Maneuver Rating (MR): REF + Initiative Mod (MV)
-    const refVal = Number(ctx.system?.stats?.REF?.value ?? 0);
-    const mv = Number(ctx.system?.substats?.initiative ?? 0);
-    ctx.mechaMR = refVal + mv;
     
     // Expose per-tab view states
     ctx._skillViewStateSkills = vsSkills;
@@ -949,7 +924,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       }
     });
 
-    // Keep other actions (roll-hitloc, ablate, heal1, dmg1, unequip, show-item) as before
+    // Keep other actions (ablate, heal1, dmg1, unequip, show-item) as before
 
     // Drag armor item ? slot
     const zones = html.find('.hit-zone');
@@ -1004,26 +979,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       this._saveViewState?.();
       this.render(false);
     });
-    // Sort selector
-    html.on('change', '.skill-sort-by', ev => {
-      const tab = getTabFromEvent(ev);
-      const state = this._tabViewState[tab];
-      state.sortBy = ev.currentTarget.value;
-      this._saveViewState?.();
-      this.render(false);
-    });
-    // Direction toggle
-    html.on('click', '.skill-sort-dir', ev => {
-      const tab = getTabFromEvent(ev);
-      const state = this._tabViewState[tab];
-      const btn = ev.currentTarget;
-      const dir = btn.dataset.dir === 'asc' ? 'desc' : 'asc';
-      state.dir = dir;
-      btn.dataset.dir = dir;
-      btn.textContent = dir === 'asc' ? '?' : '?';
-      this._saveViewState?.();
-      this.render(false);
-    });
     // Substat controls: +/- buttons and direct input changes
     html.on('click', '.substat-incr', ev => this._onAdjustSubstat(ev, +1));
     html.on('click', '.substat-decr', ev => this._onAdjustSubstat(ev, -1));
@@ -1044,8 +999,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     html.on('click', '.create-weapon-item', ev => this._onCreateWeapon(ev));
     html.on('click', '.weapon-roll', ev => this._onRollWeapon(ev));
     html.on('click', '.weapon-damage-roll', ev => this._onRollWeaponDamage(ev));
-    html.on('click', '.weapon-hitloc-roll', ev => this._onRollHitLocation(ev));
-    html.on('click', '.mf-roll-hitloc', ev => this._onRollHitLocation(ev));
     html.on('click', '.item-delete', ev => this._onDeleteWeapon(ev));
     html.on('change', '.weapon-field', ev => this._onChangeWeaponField(ev));
 
@@ -1191,15 +1144,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
   }
 
   /* ---------- Body tab actions ---------- */
-  _onRollHitLocation(ev) {
-    ev.preventDefault();
-    // Simple random pick among locations
-    const keys = Object.keys(this.actor.system?.body?.locations || {});
-    if (!keys.length) return ui.notifications.warn('No body locations defined');
-    const idx = Math.floor(Math.random() * keys.length);
-    const loc = keys[idx];
-    ui.notifications.info(`Hit location: ${this.actor.system.body.locations[loc].label}`);
-  }
 
   async _onBodyAblate(ev) {
     ev.preventDefault();
@@ -1248,40 +1192,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     } catch (e) { console.error('long-drift | Failed unequip', e); }
   }
 
-  // Sample hit location roller (customize to your table)
-  async _rollHitLocation() {
-    console.log('long-drift | Rolling hit location...');
-    // Hit location: 1d10 map
-    const map = { 1:'head', 2:'torso', 3:'torso', 4:'torso', 5:'rArm', 6:'lArm', 7:'rLeg', 8:'rLeg', 9:'lLeg', 10:'lLeg' };
-    const roll = new Roll('1d10');
-    await roll.evaluate();
-    const total = roll.total;
-    const loc = map[total] ?? 'torso';
-    
-    console.log('long-drift | Hit location result:', { total, loc });
-    
-    // Show the roll in chat with proper label
-    const locLabel = {
-      head: 'Head',
-      torso: 'Torso',
-      rArm: 'Right Arm',
-      lArm: 'Left Arm',
-      rLeg: 'Right Leg',
-      lLeg: 'Left Leg'
-    }[loc] || loc;
-    
-    await roll.toMessage({
-      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      flavor: `<strong>Hit Location: ${locLabel}</strong>`
-    });
-    
-    // Optional: flash that zone
-    const el = this.element.find(`.hit-zone.${loc}`);
-    if (el && el.length) {
-      el.addClass('active');
-      setTimeout(() => el.removeClass('active'), 500);
-    }
-  }
 
   /** Increment/decrement a substat by delta and persist immediately */
   async _onAdjustSubstat(ev, delta) {
@@ -1463,10 +1373,13 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
         .filter(i => i.type === 'skill' && i.system?.category !== 'PSI' && i.system?.custom)
         .map(i => i.name.toLowerCase());
 
-      // Collect available stats from actor (fallback to common set)
-      const statKeys = Object.keys(this.actor.system?.stats || { INT:1, REF:1, DEX:1, TECH:1, COOL:1, WILL:1, LUCK:1, MOVE:1, BODY:1, EMP:1 })
-        .map(k => k.toUpperCase());
-      const stats = Array.from(new Set(statKeys));
+      // Always expose the full CPR stat set, plus any extra actor-specific keys.
+      const canonicalStats = ["INT", "REF", "DEX", "TECH", "COOL", "WILL", "LUCK", "MOVE", "BODY", "EMP"];
+      const actorStatKeys = Object.keys(this.actor.system?.stats || {})
+        .map(k => String(k).toUpperCase())
+        .filter(Boolean);
+      const extraStats = actorStatKeys.filter(k => !canonicalStats.includes(k));
+      const stats = [...canonicalStats, ...extraStats];
 
       let name, chosenStat;
       try {
@@ -1744,21 +1657,13 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
     
     const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await this.constructor._rollBidirectionalExplodingD10();
-    // If this is a Mecha skill, add MV (initiative modifier) to REF as part of MR
-    const isMecha = String(skill.system?.category || '').toUpperCase() === 'REF:MECHA' || /MECHA\s+(PILOTING|FIGHTING|MELEE|GUNNERY|MISSILES)/i.test(skill.name || '');
-    const mv = Number(this.actor.system?.substats?.initiative ?? 0);
-    const mr = isMecha && stat === 'REF' ? (statVal + mv) : statVal;
-    const finalTotal = base + mr + rank + (mod||0);
+    const finalTotal = base + statVal + rank + (mod||0);
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
     
     const plusStr = plusDice.join(' + ');
     const minusStr = minusDice.length ? ' - (' + minusDice.join(' + ') + ')' : '';
     const flavorParts = [`(${plusStr}${minusStr})`];
-    if (isMecha && stat === 'REF') {
-      flavorParts.push(`MR ${mr} (REF ${statVal} + MV ${mv})`);
-    } else {
-      flavorParts.push(`${statLabel} ${statVal}`);
-    }
+    flavorParts.push(`${statLabel} ${statVal}`);
     if (rank) flavorParts.push(`Rank ${rank}`);
     if (mod) flavorParts.push(`Mod ${mod >= 0 ? '+' : ''}${mod}`);
     
@@ -1784,10 +1689,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
   /** Create a new weapon item */
   async _onCreateWeapon(ev) {
     ev.preventDefault();
-    // Determine if weapon is for mecha based on which section the button was clicked from
-    const section = ev.currentTarget.closest('.combat-section');
-    const isMecha = section?.classList.contains('mecha-combat');
-    
+
     try {
       await this.actor.createEmbeddedDocuments('Item', [{
         name: "New Weapon",
@@ -1800,7 +1702,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
           shots: 0,
           bv: "",
           skill: "",
-          isMecha: !!isMecha
+          isMecha: false
         }
       }]);
       this.render(false);
@@ -1895,35 +1797,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const weaponName = weapon.system?.name || weapon.name;
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
     const flavor = `<strong>${this.actor.name}</strong> rolls damage for <strong>${weaponName}</strong>: <em>${formula}</em> = <strong style="font-size: 1.2em; color: #c0392b;">${roll.total}</strong>`;
-    await roll.toMessage({ speaker, flavor });
-  }
-
-  /** Roll human hit location (1d10 vs the Human Random Hit Chart) */
-  async _onRollHitLocation(ev) {
-    ev.preventDefault();
-    const button = ev.currentTarget;
-    const itemId = button.dataset.itemId;
-
-    // Resolve weapon name if called from a weapon button, otherwise generic label
-    let weaponLabel = "";
-    if (itemId) {
-      const weapon = this.actor.items.get(itemId);
-      if (weapon) weaponLabel = ` (${weapon.system?.name || weapon.name})`;
-    }
-
-    const roll = await new Roll("1d10").evaluate();
-    const result = roll.total;
-
-    let location;
-    if (result === 1)           location = "Head";
-    else if (result <= 4)       location = "Torso";
-    else if (result === 5)      location = "Right Arm";
-    else if (result === 6)      location = "Left Arm";
-    else if (result <= 8)       location = "Right Leg";
-    else                        location = "Left Leg";
-
-    const speaker = ChatMessage.getSpeaker({ actor: this.actor });
-    const flavor = `<strong>${this.actor.name}</strong> hit location${weaponLabel}: rolled <strong>${result}</strong> ? <strong style="font-size: 1.1em;">${location}</strong>`;
     await roll.toMessage({ speaker, flavor });
   }
 

@@ -37,7 +37,8 @@ export class SkillDataModel extends ItemDataModel {
       rank: new fields.NumberField({ initial: 0, integer: true }),
       favorite: new fields.BooleanField({ initial: false }),
       ip: new fields.NumberField({ initial: 0, integer: true }),
-      hard: new fields.BooleanField({ initial: false })
+      hard: new fields.BooleanField({ initial: false }),
+      custom: new fields.BooleanField({ initial: false })
     });
   }
 }
@@ -48,8 +49,7 @@ export class ArmorDataModel extends ItemDataModel {
     const fields = foundry.data.fields;
     const parentSchema = super.defineSchema();
     return foundry.utils.mergeObject(parentSchema, {
-      armorValue: new fields.NumberField({ initial: 0, integer: true }),
-      bodyLocation: new fields.StringField({ initial: "" })
+      armorValue: new fields.NumberField({ initial: 0, integer: true })
     });
   }
 }

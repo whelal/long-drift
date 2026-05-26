@@ -10,15 +10,9 @@
         <label>Stat</label>
         {{#if isCustom}}
           <select name="system.stat">
-            <option value="INT">INT</option>
-            <option value="REF">REF</option>
-            <option value="TECH">TECH</option>
-            <option value="COOL">COOL</option>
-            <option value="ATTR">ATTR</option>
-            <option value="LUCK">LUCK</option>
-            <option value="MA">MA</option>
-            <option value="BODY">BODY</option>
-            <option value="EMP">EMP</option>
+            {{#each statOptions as |opt|}}
+              <option value="{{opt.value}}" {{#if opt.selected}}selected{{/if}}>{{opt.label}}</option>
+            {{/each}}
           </select>
         {{else}}
           <input type="text" value="{{system.stat}}" readonly style="background: #f0f0f0;"/>

@@ -8,15 +8,6 @@
             {{localize 'MF.ShowFavOnly'}}
           {{/if}}
         </button>
-        <label>{{localize 'MF.SortBy'}}:
-          <select class="skill-sort-by">
-            <option value="name" {{#if (eq _skillViewStateSkills.sortBy 'name')}}selected{{/if}}>{{localize 'MF.SortName'}}</option>
-            <option value="stat" {{#if (eq _skillViewStateSkills.sortBy 'stat')}}selected{{/if}}>{{localize 'MF.SortStat'}}</option>
-            <option value="rank" {{#if (eq _skillViewStateSkills.sortBy 'rank')}}selected{{/if}}>{{localize 'MF.SortRank'}}</option>
-            <option value="total" {{#if (eq _skillViewStateSkills.sortBy 'total')}}selected{{/if}}>{{localize 'MF.SortTotal'}}</option>
-          </select>
-        </label>
-        <button type="button" class="skill-sort-dir" data-dir="{{_skillViewStateSkills.dir}}" title="Toggle direction">{{#if (eq _skillViewStateSkills.dir 'asc')}}▲{{else}}▼{{/if}}</button>
         <button type="button" class="custom-skill-add custom-skill-add-top" title="{{localize 'MF.AddCustomSkill'}}">+</button>
     {{#unless hasSkillItems}}
       <div class="skill-menu" style="display:inline-block;position:relative;">
@@ -34,7 +25,7 @@
           <section class="skill-group-block" data-category="{{group.category}}">
             <header class="skill-group-head">
               <span class="group-spacer"></span>
-              <span class="group-title">{{localize (concat 'MF.SkillGroup.' group.category) fallback=group.category}}</span>
+              <span class="group-title">{{localize group.localizeKey fallback=group.category}}</span>
               <span class="group-col-label group-col-rank">LVL</span>
               <span class="group-col-label group-col-total">Base</span>
               <span class="group-spacer"></span>
@@ -62,7 +53,7 @@
           <section class="skill-group-block" data-category="{{group.category}}">
             <header class="skill-group-head">
               <span class="group-spacer"></span>
-              <span class="group-title">{{localize (concat 'MF.SkillGroup.' group.category) fallback=group.category}}</span>
+              <span class="group-title">{{localize group.localizeKey fallback=group.category}}</span>
               <span class="group-col-label group-col-rank">LVL</span>
               <span class="group-col-label group-col-total">Base</span>
               <span class="group-spacer"></span>

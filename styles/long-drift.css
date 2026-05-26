@@ -963,88 +963,12 @@ html.theme-dark .long-drift {
 /* Paperdoll help section */
 .long-drift .tab.body .mf-doll-help {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.long-drift .tab.body .mf-roll-hitloc {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  background: var(--mf-accent);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-  width: 100%;
-}
-
-.long-drift .tab.body .mf-roll-hitloc:hover {
-  background: #0056b3;
 }
 
 .long-drift .tab.body .mf-drop-hint {
   font-size: 0.85rem;
   color: var(--mf-muted);
   text-align: center;
-}
-
-/* Hit location table */
-.long-drift .tab.body .mf-hitloc-table {
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
-.long-drift .tab.body .mf-hitloc-table table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--mf-card);
-  border: 1px solid var(--mf-soft-border);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.long-drift .tab.body .mf-hitloc-table thead {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.long-drift .tab.body .mf-hitloc-table th {
-  padding: 0.5rem;
-  font-weight: 600;
-  text-align: left;
-  border-bottom: 1px solid var(--mf-soft-border);
-}
-
-.long-drift .tab.body .mf-hitloc-table th:first-child {
-  text-align: center;
-  width: 30%;
-  max-width: 100%;
-  min-width: 0;
-}
-
-.long-drift .tab.body .mf-hitloc-table thead tr:first-child th {
-  text-align: center;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.long-drift .tab.body .mf-hitloc-table td {
-  padding: 0.4rem 0.5rem;
-  border-bottom: 1px solid var(--mf-soft-border);
-}
-
-.long-drift .tab.body .mf-hitloc-table td:first-child {
-  text-align: center;
-  font-weight: 600;
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.long-drift .tab.body .mf-hitloc-table tbody tr:last-child td {
-  border-bottom: none;
 }
 
 /* Hit zones on paperdoll - interactive */
@@ -1077,57 +1001,6 @@ html.theme-dark .long-drift {
 
 .long-drift .tab.body .mf-doll-svg .item-icon[href=""] {
   display: none;
-}
-
-/* Right column: body location table */
-.long-drift .tab.body .mf-body-table {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.long-drift .tab.body .mf-table-head {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr;
-  gap: 0.1rem;
-  padding: 0.1rem;
-  font-size: 0.95em;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.long-drift .tab.body .mf-table-head > div:first-child {
-  text-align: left;
-}
-
-.long-drift .tab.body .mf-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem 0.5rem;
-  background: var(--mf-card);
-  border: 1px solid var(--mf-soft-border);
-  border-radius: 4px;
-  transition: background 0.15s;
-}
-
-.long-drift .tab.body .mf-row-main {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr;
-  gap: 0.1rem;
-  align-items: center;
-}
-
-.long-drift .tab.body .mf-row:hover {
-  background: rgba(0, 123, 255, 0.03);
-}
-
-.long-drift .tab.body .mf-loc-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  justify-content: flex-start;
 }
 
 .long-drift .tab.body .mf-dot {
