@@ -1,25 +1,40 @@
 {
-  "id": "mekton-fusion",
-  "title": "Mekton Fusion",
-  "description": "Fusion of Mekton with Cyberpunk 2020 stats/skills and Witcher TRPG magic.",
-  "version": "0.1.10",
-  "compatibility": { "minimum": "13", "verified": "14" },
-  "authors": [{ "name": "Wael Helal (whelal)" }],
-  "url": "https://github.com/whelal/mekton-fusion",
-  "bugs": "https://github.com/whelal/mekton-fusion/issues",
+  "id": "long-drift",
+  "title": "Long Drift",
+  "description": "A Cyberpunk RED system for Foundry Virtual Tabletop.",
+  "version": "0.0.1",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "14"
+  },
+  "authors": [
+    {
+      "name": "Wael Helal (whelal)",
+      "flags": {}
+    }
+  ],
+  "url": "https://github.com/whelal/long-drift",
+  "bugs": "https://github.com/whelal/long-drift/issues",
   "license": "MIT",
   "readme": "README.md",
   "changelog": "CHANGELOG.md",
-  "scripts": [],
   "esmodules": [
-    "scripts/sheets/mekton-fusion.js",
+    "scripts/sheets/long-drift.js",
     "scripts/sheets/actor-sheet.js",
     "module/sheets/item-sheet.js"
   ],
-  "styles": ["styles/mekton-fusion.css"],
-  "packs": [],
+  "styles": [
+    {
+      "src": "styles/long-drift.css"
+    }
+  ],
   "languages": [
-    { "lang": "en", "name": "English", "path": "lang/en.json" }
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    }
   ],
   "documentTypes": {
     "Actor": {
@@ -35,6 +50,7 @@
     }
   },
   "initiative": "1d10 + @system.stats.REF.value + @system.substats.initiative",
-  "manifest": "https://raw.githubusercontent.com/whelal/mekton-fusion/main/system.json",
-  "download": "https://github.com/whelal/mekton-fusion/archive/refs/heads/main.zip"
+  "manifest": "https://raw.githubusercontent.com/whelal/long-drift/main/system.json",
+  "download": "https://github.com/whelal/long-drift/archive/refs/heads/main.zip",
+  "flags": {}
 }

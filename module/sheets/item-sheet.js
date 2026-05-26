@@ -1,8 +1,8 @@
 export class MektonFusionItemSheet extends foundry.appv1.sheets.ItemSheet {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["mekton-fusion", "sheet", "item"],
-      template: "systems/mekton-fusion/templates/item-sheet.html",
+      classes: ["long-drift", "sheet", "item"],
+      template: "systems/long-drift/templates/item-sheet.html",
       width: 520,
       height: 420,
       closeOnSubmit: false,
@@ -19,7 +19,7 @@ export class MektonFusionItemSheet extends foundry.appv1.sheets.ItemSheet {
     context.isCustom = this.object.system?.custom;
     
     // Debug logging
-    console.log("mekton-fusion | Item sheet getData:", {
+    console.log("long-drift | Item sheet getData:", {
       name: this.object.name,
       type: this.object.type,
       system: this.object.system,
@@ -29,21 +29,22 @@ export class MektonFusionItemSheet extends foundry.appv1.sheets.ItemSheet {
     
     // Add stat selections for dropdown - always create for skills
     if (context.isSkill) {
-      const stats = ["INT", "REF", "TECH", "COOL", "ATTR", "LUCK", "MA", "BODY", "EMP"];
+      const stats = ["INT", "REF", "DEX", "TECH", "COOL", "WILL", "LUCK", "MOVE", "BODY", "EMP"];
       const currentStat = this.object.system?.stat || "REF";
-      context.statOptions = stats.map(stat => ({
+      const statChoices = stats.includes(currentStat) ? stats : [...stats, currentStat];
+      context.statOptions = statChoices.map(stat => ({
         value: stat,
         label: stat,
         selected: stat === currentStat
       }));
       
       // Create HTML for stat select element
-      context.statSelectHTML = stats.map(stat => 
+      context.statSelectHTML = statChoices.map(stat => 
         `<option value="${stat}"${stat === currentStat ? ' selected' : ''}>${stat}</option>`
       ).join('');
       
-      console.log("mekton-fusion | Created stat options:", context.statOptions);
-      console.log("mekton-fusion | Current stat:", currentStat);
+      console.log("long-drift | Created stat options:", context.statOptions);
+      console.log("long-drift | Current stat:", currentStat);
     }
     
     return context;
@@ -57,7 +58,7 @@ export class MektonFusionItemSheet extends foundry.appv1.sheets.ItemSheet {
       const statSelect = html.find('select[name="system.stat"]');
       if (statSelect.length && this.object.system.stat) {
         statSelect.val(this.object.system.stat);
-        console.log("mekton-fusion | Set stat dropdown to:", this.object.system.stat);
+        console.log("long-drift | Set stat dropdown to:", this.object.system.stat);
       }
     }
     

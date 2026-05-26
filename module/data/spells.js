@@ -1,52 +1,55 @@
-﻿export const WITCHER_SIGNS = [
+﻿export const LONG_DRIFT_CORE_POWERS = [
   {
-    name: "Aard",
+    name: "Overclock",
     type: "spell",
     system: {
-      school: "Sign",
+      school: "Interface",
+      cost: 2,
+      test: "INT",
+      effect: "Push your rig or cyberdeck beyond limits for a short burst of speed and throughput."
+    }
+  },
+  {
+    name: "Signal Jam",
+    type: "spell",
+    system: {
+      school: "Interface",
       cost: 3,
       test: "INT",
-      effect: "Telekinetic blast; push/knockdown in a cone."
+      effect: "Disrupt local comms and targeting feeds in a short radius."
     }
   },
   {
-    name: "Igni",
+    name: "Static Field",
     type: "spell",
     system: {
-      school: "Sign",
-      cost: 3,
-      test: "INT",
-      effect: "Flame burst; cone fire damage; may ignite."
-    }
-  },
-  {
-    name: "Yrden",
-    type: "spell",
-    system: {
-      school: "Sign",
+      school: "Tech",
       cost: 2,
       test: "INT",
-      effect: "Magical trap; slows/hinders within area."
+      effect: "Project a crackling control zone that slows movement and interferes with precision actions."
     }
   },
   {
-    name: "Quen",
+    name: "Kinetic Screen",
     type: "spell",
     system: {
-      school: "Sign",
+      school: "Tech",
       cost: 2,
       test: "INT",
-      effect: "Protective shield; absorb damage for short time."
+      effect: "Generate a temporary defensive barrier that absorbs incoming damage."
     }
   },
   {
-    name: "Axii",
+    name: "Mood Spike",
     type: "spell",
     system: {
-      school: "Sign",
+      school: "Neural",
       cost: 2,
-      test: "EMP",
-      effect: "Charm/calm; influence target's actions briefly."
+      test: "WILL",
+      effect: "Briefly destabilize a target's emotional state, making social checks against them easier."
     }
   }
 ];
+
+// Legacy alias retained temporarily for compatibility with older imports.
+export const WITCHER_SIGNS = LONG_DRIFT_CORE_POWERS;

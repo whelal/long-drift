@@ -1,7 +1,7 @@
 /* =========================
    Theme Vars (scoped so we don't leak)
    ========================= */
-.mekton-fusion {
+.long-drift {
   --mf-black: #000;
   --mf-white: #fff;
   --mf-bg: #f5f5f5;
@@ -35,7 +35,7 @@
   --mf-btn: 28px;
 }
 
-html.theme-dark .mekton-fusion {
+html.theme-dark .long-drift {
   --mf-bg: #1a1a1a;
   --mf-card: #181818;
   --mf-text: #eee;

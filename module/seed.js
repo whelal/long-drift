@@ -1,5 +1,5 @@
-import { CP2020_SKILLS } from "./data/skills.js";
-import { WITCHER_SIGNS } from "./data/spells.js";
+import { LONG_DRIFT_CORE_SKILLS } from "./data/skills.js";
+import { LONG_DRIFT_CORE_POWERS } from "./data/spells.js";
 
 
 const HARD_MECHA_GUNNERY = "Mecha Gunnery (H)";
@@ -14,6 +14,17 @@ const LEGACY_SKILL_RENAMES = {
 // Deprecated skill names to purge (non-PSI duplicates)
 const DEPRECATED_SKILL_NAMES = ["Stat Boost"]; // keep only Stat Boost (phys) in PSI list
 
+function normalizeStatKey(stat) {
+  const s = String(stat || "").toUpperCase();
+  const map = {
+    MA: "MOVE",
+    ATTR: "COOL",
+    EDU: "INT",
+    PSI: "WILL"
+  };
+  return map[s] || s;
+}
+
 async function ensureFolder(name, type) {
   let folder = game.folders.find(f => f.name === name && f.type === type);
   if (!folder) folder = await Folder.create({ name, type });
@@ -22,7 +33,7 @@ async function ensureFolder(name, type) {
 
 function prepareSkillSystem(source = {}) {
   const sys = foundry.utils.deepClone(source);
-  if (sys.stat) sys.stat = String(sys.stat).toUpperCase();
+  if (sys.stat) sys.stat = normalizeStatKey(sys.stat);
   if (sys.category) sys.category = String(sys.category);
   if (sys.rank === undefined || sys.rank === null) sys.rank = 0;
   if (sys.favorite == null) sys.favorite = false;
@@ -36,7 +47,7 @@ function prepareSpellSystem(source = {}) {
   if (sys.school === undefined || sys.school === null) sys.school = "Sign";
   if (sys.cost === undefined || sys.cost === null) sys.cost = 0;
   if (sys.effect === undefined || sys.effect === null) sys.effect = "";
-  if (sys.test) sys.test = String(sys.test).toUpperCase();
+  if (sys.test) sys.test = normalizeStatKey(sys.test);
   else sys.test = "INT";
   if (sys.favorite === undefined || sys.favorite === null) sys.favorite = false;
   return sys;
@@ -64,7 +75,7 @@ async function ensureActorHasSkills(actor) {
   const allowedTypes = new Set(["character", "npc"]);
   if (!allowedTypes.has(actor.type)) return { created: 0, updated: 0 };
 
-  const defaultSkills = CP2020_SKILLS.map(skill => ({
+  const defaultSkills = LONG_DRIFT_CORE_SKILLS.map(skill => ({
     name: skill.name,
     type: "skill",
     system: prepareSkillSystem(skill.system ?? skill.data ?? {})
@@ -78,7 +89,7 @@ async function ensureActorHasSkills(actor) {
       // Only rename if target name does not already exist to avoid duplicates
       const already = existingSkills.some(other => other !== it && other.name === newName);
       if (!already) {
-        try { await it.update({ name: newName }); } catch (e) { console.warn('mekton-fusion | Failed legacy skill rename', it.name, '->', newName, e); }
+        try { await it.update({ name: newName }); } catch (e) { console.warn('long-drift | Failed legacy skill rename', it.name, '->', newName, e); }
       }
     }
   }
@@ -86,7 +97,7 @@ async function ensureActorHasSkills(actor) {
   const toRemove = existingSkills.filter(it => DEPRECATED_SKILL_NAMES.includes(it.name) && String(it.system?.category).toUpperCase() !== 'PSI');
   if (toRemove.length) {
     try { await actor.deleteEmbeddedDocuments('Item', toRemove.map(i=>i.id)); }
-    catch (e) { console.warn('mekton-fusion | Failed deleting deprecated skills', e); }
+    catch (e) { console.warn('long-drift | Failed deleting deprecated skills', e); }
   }
   const existingByName = new Map(existingSkills.map(it => [it.name, it]));
   const hardSkill = existingByName.get(HARD_MECHA_GUNNERY);
@@ -122,7 +133,10 @@ async function ensureActorHasSkills(actor) {
 
     const currentSystem = current.system ?? {};
     const patch = {};
-  if (!currentSystem.stat) patch["system.stat"] = skill.system.stat;
+  const normalizedCurrentStat = normalizeStatKey(currentSystem.stat || skill.system.stat || "INT");
+  if (!currentSystem.stat || String(currentSystem.stat).toUpperCase() !== normalizedCurrentStat) {
+    patch["system.stat"] = normalizedCurrentStat;
+  }
   if (skill.system.category && !currentSystem.category) patch["system.category"] = skill.system.category;
   if (currentSystem.hard == null && skill.system.hard) patch["system.hard"] = true;
     if (currentSystem.rank === undefined || currentSystem.rank === null) patch["system.rank"] = skill.system.rank;
@@ -142,7 +156,7 @@ async function ensureActorHasSpells(actor) {
   const allowedTypes = new Set(["character", "npc"]);
   if (!allowedTypes.has(actor.type)) return { created: 0, updated: 0 };
 
-  const defaultSpells = WITCHER_SIGNS.map(spell => ({
+  const defaultSpells = LONG_DRIFT_CORE_POWERS.map(spell => ({
     name: spell.name,
     type: "spell",
     system: prepareSpellSystem(spell.system ?? spell.data ?? {})
@@ -186,8 +200,8 @@ export async function syncActorCoreItems(actor) {
 
 export async function seedWorldData() {
   try {
-    const skillFolder = await ensureFolder("CP2020 Skills", "Item");
-    const spellFolder = await ensureFolder("Witcher Signs", "Item");
+    const skillFolder = await ensureFolder("Long Drift Core Skills", "Item");
+    const spellFolder = await ensureFolder("Long Drift Core Powers", "Item");
 
     const existing = new Map(game.items.map(item => [item.name, item]));
     // World-level legacy renames (Items in compendium/world item directory)
@@ -198,7 +212,7 @@ export async function seedWorldData() {
           await current.update({ name: newName });
           existing.delete(oldName);
           existing.set(newName, current);
-        } catch (e) { console.warn('mekton-fusion | Failed world skill legacy rename', oldName, '->', newName, e); }
+        } catch (e) { console.warn('long-drift | Failed world skill legacy rename', oldName, '->', newName, e); }
       }
     }
     const legacyNames = LEGACY_MECHA_GUNNERY_NAMES;
@@ -234,8 +248,8 @@ export async function seedWorldData() {
       if (needsUpdate) updates.push(current.update({ system: desired.system }));
     };
 
-    for (const s of CP2020_SKILLS) processEntry(s, skillFolder.id);
-    for (const sp of WITCHER_SIGNS) processEntry(sp, spellFolder.id);
+    for (const s of LONG_DRIFT_CORE_SKILLS) processEntry(s, skillFolder.id);
+    for (const sp of LONG_DRIFT_CORE_POWERS) processEntry(sp, spellFolder.id);
 
     if (toCreate.length) {
       await Item.createDocuments(toCreate);
@@ -263,8 +277,8 @@ export async function seedWorldData() {
       ui.notifications.info("No new Items to seed.");
     }
   } catch (err) {
-    console.error("mekton-fusion | Seeding failed", err);
-    ui.notifications.error("Mekton Fusion seeding failed. See console.");
+    console.error("long-drift | Seeding failed", err);
+    ui.notifications.error("Long Drift seeding failed. See console.");
   }
 }
 

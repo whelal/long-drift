@@ -23,15 +23,14 @@ export class ActorDataModel extends foundry.abstract.DataModel {
             stats: new fields.SchemaField({
                 INT: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
                 REF: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                DEX: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
                 TECH: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
                 COOL: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
-                ATTR: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                WILL: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
                 LUCK: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
-                MA: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                MOVE: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
                 BODY: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
-                EMP: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
-                EDU: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
-                PSI: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) })
+                EMP: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) })
             }),
             // Unified substats container (replaces runtime seeding in sheet logic)
             substats: new fields.SchemaField({

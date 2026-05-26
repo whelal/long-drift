@@ -1,10 +1,10 @@
 {{!-- Stats tab partial --}}
 <div class="tab stats" data-tab="stats">
   <div class="stats-container">
-    <!-- Stats grid: Row 1 (6 stats), Row 2 (5 stats) -->
+    <!-- Stats grid: Row 1 (5 stats), Row 2 (5 stats) -->
     <div class="stats-grid-top">
-      <div class="stat-row-top row-six">
-        {{!-- Row 1: INT REF TECH COOL ATTR LUCK --}}
+      <div class="stat-row-top row-five">
+        {{!-- Row 1: INT REF DEX TECH COOL --}}
         <div class="stat-box" data-stat="INT">
           <div class="stat-header">INT</div>
           <div class="stat-inline">
@@ -17,6 +17,13 @@
           <div class="stat-inline">
             <input name="system.stats.REF.value" type="number" value="{{system.stats.REF.value}}" class="stat-input"/>
             <button type="button" class="stat-roll" data-ability="REF" title="Roll REF" aria-label="Roll REF"><i class="fas fa-dice-d20"></i></button>
+          </div>
+        </div>
+        <div class="stat-box" data-stat="DEX">
+          <div class="stat-header">DEX</div>
+          <div class="stat-inline">
+            <input name="system.stats.DEX.value" type="number" value="{{system.stats.DEX.value}}" class="stat-input"/>
+            <button type="button" class="stat-roll" data-ability="DEX" title="Roll DEX" aria-label="Roll DEX"><i class="fas fa-dice-d20"></i></button>
           </div>
         </div>
         <div class="stat-box" data-stat="TECH">
@@ -33,11 +40,14 @@
             <button type="button" class="stat-roll" data-ability="COOL" title="Roll COOL" aria-label="Roll COOL"><i class="fas fa-dice-d20"></i></button>
           </div>
         </div>
-        <div class="stat-box" data-stat="ATTR">
-          <div class="stat-header">ATTR</div>
+      </div>
+      <div class="stat-row-top row-five">
+        {{!-- Row 2: WILL LUCK MOVE BODY EMP --}}
+        <div class="stat-box" data-stat="WILL">
+          <div class="stat-header">WILL</div>
           <div class="stat-inline">
-            <input name="system.stats.ATTR.value" type="number" value="{{system.stats.ATTR.value}}" class="stat-input"/>
-            <button type="button" class="stat-roll" data-ability="ATTR" title="Roll ATTR" aria-label="Roll ATTR"><i class="fas fa-dice-d20"></i></button>
+            <input name="system.stats.WILL.value" type="number" value="{{system.stats.WILL.value}}" class="stat-input"/>
+            <button type="button" class="stat-roll" data-ability="WILL" title="Roll WILL" aria-label="Roll WILL"><i class="fas fa-dice-d20"></i></button>
           </div>
         </div>
         <div class="stat-box" data-stat="LUCK">
@@ -47,14 +57,11 @@
             <button type="button" class="stat-roll" data-ability="LUCK" title="Roll LUCK" aria-label="Roll LUCK"><i class="fas fa-dice-d20"></i></button>
           </div>
         </div>
-      </div>
-      <div class="stat-row-top row-five">
-        {{!-- Row 2: MA BODY EMP EDU PSI --}}
-        <div class="stat-box" data-stat="MA">
-          <div class="stat-header">MA</div>
+        <div class="stat-box" data-stat="MOVE">
+          <div class="stat-header">MOVE</div>
           <div class="stat-inline">
-            <input name="system.stats.MA.value" type="number" value="{{system.stats.MA.value}}" class="stat-input"/>
-            <button type="button" class="stat-roll" data-ability="MA" title="Roll MA" aria-label="Roll MA"><i class="fas fa-dice-d20"></i></button>
+            <input name="system.stats.MOVE.value" type="number" value="{{system.stats.MOVE.value}}" class="stat-input"/>
+            <button type="button" class="stat-roll" data-ability="MOVE" title="Roll MOVE" aria-label="Roll MOVE"><i class="fas fa-dice-d20"></i></button>
           </div>
         </div>
         <div class="stat-box" data-stat="BODY">
@@ -69,20 +76,6 @@
           <div class="stat-inline">
             <input name="system.stats.EMP.value" type="number" value="{{system.stats.EMP.value}}" class="stat-input"/>
             <button type="button" class="stat-roll" data-ability="EMP" title="Roll EMP" aria-label="Roll EMP"><i class="fas fa-dice-d20"></i></button>
-          </div>
-        </div>
-        <div class="stat-box" data-stat="EDU">
-          <div class="stat-header">EDU</div>
-          <div class="stat-inline">
-            <input name="system.stats.EDU.value" type="number" value="{{system.stats.EDU.value}}" class="stat-input"/>
-            <button type="button" class="stat-roll" data-ability="EDU" title="Roll EDU" aria-label="Roll EDU"><i class="fas fa-dice-d20"></i></button>
-          </div>
-        </div>
-        <div class="stat-box" data-stat="PSI">
-          <div class="stat-header">PSI</div>
-          <div class="stat-inline">
-            <input name="system.stats.PSI.value" type="number" value="{{system.stats.PSI.value}}" class="stat-input"/>
-            <button type="button" class="stat-roll" data-ability="PSI" title="Roll PSI" aria-label="Roll PSI"><i class="fas fa-dice-d20"></i></button>
           </div>
         </div>
       </div>
@@ -106,7 +99,7 @@
       </div>
 
       <div class="panel panel-right">
-        <h4>MA</h4>
+        <h4>MOVE</h4>
         <div class="panel-list">
           <label>• Run: <input class="substat-input" name="system.substats.run" type="number" min="0" step="0.01" value="{{system.substats.run}}"/></label>
           <label>• Leap: <input class="substat-input" name="system.substats.leap" type="number" min="0" step="0.01" value="{{system.substats.leap}}"/></label>

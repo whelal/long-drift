@@ -1,3 +1,18 @@
+## [Unreleased]
+### Changed
+- Seeding now uses `Long Drift Core Skills` and `Long Drift Core Powers` naming for world folders and defaults.
+- Settings text for seeding updated to reference Long Drift core data instead of legacy labels.
+
+### Added
+- One-time world migration (`migrationVersion` v1) to normalize legacy skill/spell stat keys to RED-compatible keys.
+
+### Migration
+- Legacy stat keys are remapped during migration:
+	- `MA` -> `MOVE`
+	- `ATTR` -> `COOL`
+	- `EDU` -> `INT`
+	- `PSI` -> `WILL`
+
 ## [0.1.8] - 2026-02-22
 ### Changed
 - Combat tab: Range column widened to 10% to accommodate values like `300-1800`.
@@ -51,7 +66,7 @@
 - Tab bar height causing large blank space above Equipment/Notes; force compact single-line tabs and horizontal overflow.
 
 ### Changed
-- Consolidated tab CSS rules in styles/partials/_tabs.css and styles/mekton-fusion.css to avoid theme interference.
+- Consolidated tab CSS rules in styles/partials/_tabs.css and styles/long-drift.css to avoid theme interference.
 
 ## 0.0.5 - 2025-10-15
 ### Changed

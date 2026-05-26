@@ -1,10 +1,10 @@
-﻿.mekton-fusion .sheet-header {
+.long-drift .sheet-header {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
 }
 
-.mekton-fusion .sheet-header .profile {
+.long-drift .sheet-header .profile {
   flex: 0 0 300px;
   width: 300px;
   height: 300px;
@@ -15,13 +15,13 @@
   background: #111;
 }
 
-.mekton-fusion .sheet-header .profile:hover {
+.long-drift .sheet-header .profile:hover {
   outline: 2px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Extra-high-specificity override: ensures portrait renders at the requested size */
-.mekton-fusion.sheet.actor .sheet-header > .profile,
-.mekton-fusion.sheet.actor .sheet-header img.profile {
+.long-drift.sheet.actor .sheet-header > .profile,
+.long-drift.sheet.actor .sheet-header img.profile {
   width: 300px !important;
   height: 300px !important;
   min-width: 300px !important;
@@ -30,13 +30,13 @@
   max-height: 300px !important;
 }
 
-.mekton-fusion .actor-hp-bar {
+.long-drift .actor-hp-bar {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
 
-.mekton-fusion .actor-hp-bar-header {
+.long-drift .actor-hp-bar-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -46,11 +46,11 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
-.mekton-fusion .actor-hp-bar-label {
+.long-drift .actor-hp-bar-label {
   font-weight: 600;
 }
 
-.mekton-fusion .actor-hp-bar-value {
+.long-drift .actor-hp-bar-value {
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0;
@@ -59,7 +59,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.mekton-fusion .actor-hp-bar-track {
+.long-drift .actor-hp-bar-track {
   position: relative;
   width: 100%;
   height: 12px;
@@ -69,7 +69,7 @@
   overflow: hidden;
 }
 
-.mekton-fusion .actor-hp-bar-fill {
+.long-drift .actor-hp-bar-fill {
   position: absolute;
   top: 0;
   left: 0;
@@ -81,21 +81,21 @@
   transition: width 0.2s ease-in-out;
 }
 
-.mekton-fusion .actor-hp-bar[data-empty="true"] .actor-hp-bar-value {
+.long-drift .actor-hp-bar[data-empty="true"] .actor-hp-bar-value {
   opacity: 0.6;
 }
 
-.mekton-fusion .actor-image:focus {
+.long-drift .actor-image:focus {
   outline: 2px solid rgba(204, 0, 0, 0.4);
 }
 
-.mekton-fusion .stats-grid {
+.long-drift .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 0.75rem;
 }
 
-.mekton-fusion .stat-row {
+.long-drift .stat-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
@@ -107,112 +107,112 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-.mekton-fusion .stat-label {
+.long-drift .stat-label {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.mekton-fusion .stat-input {
+.long-drift .stat-input {
   width: 4.5rem;
   text-align: center;
 }
 
-.mekton-fusion .stat-roll {
+.long-drift .stat-roll {
   justify-self: end;
 }
 
-.mekton-fusion .stat-roll:hover,
-.mekton-fusion .stat-roll:focus {
+.long-drift .stat-roll:hover,
+.long-drift .stat-roll:focus {
   box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.2);
 }
 
-.mekton-fusion .skills-table-wrapper {
+.long-drift .skills-table-wrapper {
   margin-top: 0.75rem;
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 6px;
   overflow: hidden;
 }
 
-.mekton-fusion .skills-table {
+.long-drift .skills-table {
   width: 100%;
   border-collapse: collapse;
   background: rgba(255, 255, 255, 0.85);
 }
 
-.mekton-fusion .skills-table thead {
+.long-drift .skills-table thead {
   background: rgba(0, 0, 0, 0.05);
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
 }
 
-.mekton-fusion .skills-table th,
-.mekton-fusion .skills-table td {
+.long-drift .skills-table th,
+.long-drift .skills-table td {
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   text-align: left;
 }
 
-.mekton-fusion .skills-table tbody tr:last-child th,
-.mekton-fusion .skills-table tbody tr:last-child td {
+.long-drift .skills-table tbody tr:last-child th,
+.long-drift .skills-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.mekton-fusion .skills-check-col {
+.long-drift .skills-check-col {
   width: 36px;
   text-align: center;
 }
 
-.mekton-fusion .skill-check {
+.long-drift .skill-check {
   text-align: center;
 }
 
-.mekton-fusion .skill-check input[type="checkbox"] {
+.long-drift .skill-check input[type="checkbox"] {
   width: 1rem;
   height: 1rem;
 }
 
-.mekton-fusion .skill-name {
+.long-drift .skill-name {
   font-weight: 600;
 }
 
-.mekton-fusion .skill-stat-display {
+.long-drift .skill-stat-display {
   font-weight: 600;
   text-transform: uppercase;
   text-align: center;
 }
 
-.mekton-fusion .skill-rank,
-.mekton-fusion .skill-ip {
+.long-drift .skill-rank,
+.long-drift .skill-ip {
   width: 4rem;
   text-align: center;
 }
 
-.mekton-fusion .skills-actions {
+.long-drift .skills-actions {
   text-align: right;
 }
 
-.mekton-fusion .skills-empty {
+.long-drift .skills-empty {
   text-align: center;
   font-style: italic;
   padding: 1.5rem 0;
 }
 
-.mekton-fusion .skills-actions-col {
+.long-drift .skills-actions-col {
   width: 1%;
   white-space: nowrap;
 }
-.mekton-fusion .actor-summary {
+.long-drift .actor-summary {
   gap: 0.5rem;
 }
 
-.mekton-fusion .actor-derived {
+.long-drift .actor-derived {
   display: flex;
   gap: 1rem;
 }
 
-.mekton-fusion .actor-hp {
+.long-drift .actor-hp {
   display: inline-flex;
   align-items: baseline;
   gap: 0.35rem;
@@ -220,11 +220,11 @@
   font-weight: 600;
 }
 
-.mekton-fusion .actor-hp span {
+.long-drift .actor-hp span {
   font-variant-numeric: tabular-nums;
 }
 
-.mekton-fusion .actor-hp label {
+.long-drift .actor-hp label {
   text-transform: uppercase;
   font-size: 0.7rem;
   letter-spacing: 0.12em;
@@ -243,13 +243,13 @@
 }
 
 /* Item sheet styling */
-.mekton-fusion.sheet.item .form-group {
+.long-drift.sheet.item .form-group {
   display: flex;
   flex-direction: column;
   margin-bottom: 1rem;
 }
 
-.mekton-fusion.sheet.item .form-group label {
+.long-drift.sheet.item .form-group label {
   font-weight: bold;
   margin-bottom: 0.25rem;
   text-transform: uppercase;
@@ -257,21 +257,21 @@
   color: rgba(0, 0, 0, 0.7);
 }
 
-.mekton-fusion.sheet.item .form-group input,
-.mekton-fusion.sheet.item .form-group select,
-.mekton-fusion.sheet.item .form-group textarea {
+.long-drift.sheet.item .form-group input,
+.long-drift.sheet.item .form-group select,
+.long-drift.sheet.item .form-group textarea {
   padding: 0.5rem;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 4px;
   font-family: inherit;
 }
 
-.mekton-fusion.sheet.item .form-group input[type="checkbox"] {
+.long-drift.sheet.item .form-group input[type="checkbox"] {
   width: auto;
   margin-right: 0.5rem;
 }
 
-.mekton-fusion.sheet.item .sheet-header h1 input {
+.long-drift.sheet.item .sheet-header h1 input {
   border: none;
   background: transparent;
   font-size: 1.2rem;

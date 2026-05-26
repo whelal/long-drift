@@ -1,15 +1,15 @@
-﻿// Mekton Fusion: Seed Core Data macro
+﻿// Long Drift: Seed Core Data macro
 // Drop this into a Script Macro (or load via hotbar) to rebuild default skills and spells.
 (async () => {
-  const modulePath = foundry.utils.getRoute("systems/mekton-fusion/module/seed.js");
+  const modulePath = foundry.utils.getRoute("systems/long-drift/module/seed.js");
   try {
-    ui.notifications.info("Seeding Mekton Fusion core data…");
+    ui.notifications.info("Seeding Long Drift core data...");
     const { seedWorldData } = await import(`${modulePath}?v=${game.system.version}`);
     if (typeof seedWorldData !== "function") throw new Error("seedWorldData export missing");
     await seedWorldData();
-    ui.notifications.info("Mekton Fusion seeding complete.");
+    ui.notifications.info("Long Drift seeding complete.");
   } catch (err) {
-    console.error("Mekton Fusion | Macro seed error", err);
+    console.error("Long Drift | Macro seed error", err);
     ui.notifications.error(`Seeding failed: ${err.message ?? err}`);
   }
 })();

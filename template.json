@@ -6,11 +6,12 @@
         "stats": {
           "INT": { "value": 5 },
           "REF": { "value": 5 },
+          "DEX": { "value": 5 },
           "TECH": { "value": 5 },
           "COOL": { "value": 5 },
-          "ATTR": { "value": 5 },
+          "WILL": { "value": 5 },
           "LUCK": { "value": 5 },
-          "MA": { "value": 5 },
+          "MOVE": { "value": 5 },
           "BODY": { "value": 5 },
           "EMP": { "value": 5 }
         },
@@ -85,7 +86,7 @@
     "npc": { "templates": ["base"] }
   },
   "Item": {
-    "types": ["skill", "spell", "weapon", "armor"],
+    "types": ["skill", "spell", "weapon", "mecha-weapon", "armor"],
     "templates": {
       "base": {
         "description": "",

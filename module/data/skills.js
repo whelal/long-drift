@@ -1,4 +1,4 @@
-export const CP2020_SKILLS = [
+export const LONG_DRIFT_CORE_SKILLS = [
   // ATTR (Personal Presence)
   { name: "Personal Grooming", type: "skill", system: { stat: "ATTR", category: "ATTR", rank: 0, favorite: false, ip: 0 } },
   { name: "Wardrobe & Style", type: "skill", system: { stat: "ATTR", category: "ATTR", rank: 0, favorite: false, ip: 0 } },
@@ -118,6 +118,9 @@ export const CP2020_SKILLS = [
   { name: "Postcognition", type: "skill", system: { stat: "PSI", category: "PSI", rank: 0, favorite: false, ip: 0 } },
   { name: "Possession", type: "skill", system: { stat: "PSI", category: "PSI", rank: 0, favorite: false, ip: 0 } }
 ];
+
+// Legacy alias retained temporarily for compatibility with older imports.
+export const CP2020_SKILLS = LONG_DRIFT_CORE_SKILLS;
 
 export const PSIONIC_SKILL_NAMES = Object.freeze([
   "Stat Boost (phys)",
