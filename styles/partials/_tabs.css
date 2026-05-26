@@ -1,0 +1,149 @@
+/* Visually differentiate Spellcasting column in spells table */
+.mekton-fusion .spell-spellcasting {
+  background: rgba(111, 66, 193, 0.08);
+  font-style: italic;
+  color: #4b2e83;
+  font-weight: 500;
+}
+
+/* Spell input field styling */
+.mekton-fusion .spell-cost,
+.mekton-fusion .spell-range,
+.mekton-fusion .spell-duration,
+.mekton-fusion .spell-defense {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  text-align: center;
+  font-size: 0.9em;
+  border: 1px solid #ccc;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mekton-fusion .spell-cost {
+  max-width: 50px;
+}
+
+.mekton-fusion .spell-range,
+.mekton-fusion .spell-duration,
+.mekton-fusion .spell-defense {
+  max-width: 80px;
+  text-align: left;
+}
+/* Remove extra white space above/below tab bar */
+.mekton-fusion.sheet.actor nav.sheet-tabs.tabs {
+  margin: 0 !important;
+  padding: 0 !important;
+  /* Ensure tab bar remains a single compact row */
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  flex: 0 0 32px !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+/* ---------- Tabs & Tables (DRY: grouped selectors) ---------- */
+.mekton-fusion .sheet-body .tab { padding: 0; margin: 0; } /* overrides Foundry padding safely */
+
+.mekton-fusion .tab.skills .skill-controls,
+.mekton-fusion .tab.psi .skill-controls,
+.mekton-fusion .tab.spells .spell-controls { margin: var(--mf-gap-xs) var(--mf-gap-sm) var(--mf-gap-sm); }
+
+.mekton-fusion .tab.skills .skills-table,
+.mekton-fusion .tab.psi .skills-table,
+.mekton-fusion .tab.spells .skills-table,
+.mekton-fusion .tab.skills .mf-empty,
+.mekton-fusion .tab.psi .mf-empty,
+.mekton-fusion .tab.spells .mf-empty { margin: 0 var(--mf-gap-sm) var(--mf-gap-sm); }
+
+.mekton-fusion .skills-table { width: 100%; }
+
+/* Put consolidated skills table sizing AFTER everything else */
+/* Make table obey <col> widths but allow auto layout for elastic Name column */
+.mekton-fusion.sheet.actor .skills-table { table-layout: auto; width: 100%; }
+
+/* Fav */
+.mekton-fusion.sheet.actor .skills-table col:nth-child(1) { width: 28px !important; }
+/* Name (elastic, soaks remaining space) */
+.mekton-fusion.sheet.actor .skills-table col:nth-child(2) { width: auto !important; }
+/* Stat */
+.mekton-fusion.sheet.actor .skills-table col:nth-child(3) { width: 52px !important; }
+/* Rank, IP, Total */
+.mekton-fusion.sheet.actor .skills-table col:nth-child(4),
+.mekton-fusion.sheet.actor .skills-table col:nth-child(5),
+.mekton-fusion.sheet.actor .skills-table col:nth-child(6) { width: 46px !important; }
+/* Roll / Edit (icon-only) */
+.mekton-fusion.sheet.actor .skills-table col:nth-child(7) { width: 38px !important; }
+.mekton-fusion.sheet.actor .skills-table col:nth-child(8) { width: 36px !important; }
+
+/* Prevent inner controls from forcing wider columns */
+.mekton-fusion.sheet.actor .skills-table :is(input, button, .button, .rollable) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 2px 4px;
+}
+
+/* Let long names wrap nicely */
+.mekton-fusion.sheet.actor .skills-table td:nth-child(2) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Compact action buttons */
+.mekton-fusion.sheet.actor .skills-table .roll-button,
+
+/* Base style for all add buttons */
+/* Base style for all add buttons */
+.mekton-fusion.sheet.actor button.psi-add-power,
+.mekton-fusion.sheet.actor button.spell-add-power,
+.mekton-fusion.sheet.actor button.custom-skill-add,
+.mekton-fusion.sheet.actor button.custom-skill-add-top {
+  color: #fff;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  line-height: 1;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+
+/* Add Psionics button: green */
+.mekton-fusion.sheet.actor button.psi-add-power {
+  background: #43a047;
+  border: 1px solid #2e7031;
+}
+.mekton-fusion.sheet.actor button.psi-add-power:hover { background: #66bb6a; }
+.mekton-fusion.sheet.actor button.psi-add-power:active { background: #388e3c; }
+
+/* Add Spell button: purple */
+.mekton-fusion.sheet.actor button.spell-add-power {
+  background: #7e57c2;
+  border: 1px solid #4b2e83;
+}
+.mekton-fusion.sheet.actor button.spell-add-power:hover { background: #9575cd; }
+.mekton-fusion.sheet.actor button.spell-add-power:active { background: #5e35b1; }
+
+/* Add Custom Skill button: blue (top only) */
+.mekton-fusion.sheet.actor button.custom-skill-add-top {
+  background: #1976d2;
+  border: 1px solid #115293;
+}
+.mekton-fusion.sheet.actor button.custom-skill-add-top:hover { background: #2196f3; }
+
+
+/* Inline + inside category divider should not stretch layout */
+.mekton-fusion.sheet.actor .skills-table .skill-category-divider button.custom-skill-add {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Responsive column hiding */
+@media (max-width: 820px) { .mekton-fusion.sheet.actor .skills-table col:nth-child(5), .mekton-fusion.sheet.actor .skills-table th.col-ip, .mekton-fusion.sheet.actor .skills-table td.skill-ip-cell { display: none; } }
+@media (max-width: 600px) { .mekton-fusion.sheet.actor .skills-table col:nth-child(6), .mekton-fusion.sheet.actor .skills-table th.col-total, .mekton-fusion.sheet.actor .skills-table td.skill-total { display: none; } }

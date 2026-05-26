@@ -1,0 +1,106 @@
+## [0.1.8] - 2026-02-22
+### Changed
+- Combat tab: Range column widened to 10% to accommodate values like `300-1800`.
+- Combat tab: Damage column widened to 16% to accommodate formulas like `2d6+1d10+5`.
+
+## [0.1.7] - 2026-02-22
+### Added
+- Combat tab: Mecha combat section now has a MECHA WEAPONS table matching the human combat weapons layout.
+- Weapons separated by `isMecha` flag — human and mecha weapons are fully independent.
+- Note field added after Skill column in both human and mecha weapons tables.
+
+## [0.1.0] - 2025-11-19
+## [0.1.4] - 2026-01-05
+### Fixed
+- Initiative (MV) now persists: duplicate MV inputs across tabs stay in sync and submit the edited value instead of reverting.
+
+## [0.1.3] - 2025-11-30
+### Fixed
+- Header height anchored to initial Stats render to prevent layout jumps across tabs.
+
+### Changed
+- Profile header layout: grouped Hair Color, Hair Style, Eye Color into a single row; constrained profile box width for cleaner header.
+
+### Added
+- Actor `system.profile` fields exposed in header (hair color/style, eye color, personality traits, valued most, valued possession, person valued most).
+
+### Added
+- Decimal support for movement substats (`run`, `leap`, `swim`) allowing fractional values.
+
+### Changed
+- Skill renames: `Military Intelligence` -> `Expert: Military Intelligence`; `Spellcasting` -> `Spellcasting (2)`; `Resist Magic` -> `Resist Magic (2)`.
+- Expanded input width for large numeric substats (`--mf-input-w-lg` 56px→70px).
+
+### Removed
+- Duplicate non-PSI `Stat Boost` skill (legacy item purged).
+
+### Migration
+- Automatic rename of legacy skill items to new names during seed/migration pass.
+- Purge of deprecated skill items at load (non-PSI Stat Boost).
+
+### Fixed
+- Movement decimal values now persist (previously coerced to integers by schema).
+- Initiative remains integer-only (schema confirms enforcement).
+
+### Internal
+- DataModel schema updated: `run`, `leap`, `swim` now `integer:false`.
+- Version bumped to `0.1.0` marking minor feature milestone.
+
+## 0.0.8 - 2025-10-20
+### Fixed
+- Tab bar height causing large blank space above Equipment/Notes; force compact single-line tabs and horizontal overflow.
+
+### Changed
+- Consolidated tab CSS rules in styles/partials/_tabs.css and styles/mekton-fusion.css to avoid theme interference.
+
+## 0.0.5 - 2025-10-15
+### Changed
+- Body tab: grouped SP/SDP input-button pairs on a single row for faster use.
+- Allow SDP to exceed MaxSDP (no clamping) to support over-repair/buffer scenarios.
+- Default SP and MaxSP set to 10 across all body locations.
+- Compact CSS tweaks for inline actions and spacing.
+- Horizontal layout refinements for paperdoll + table.
+
+## 0.0.4 - 2025-10-10
+### Added
+- Formal DataModel schema for `system.substats` (stun, death, lift, carry, run, leap, swim, hp, hp_current, sta, sta_current, rec, rec_current, psi, psi_current, psihybrid, psihybrid_current, initiative, dodge, enc, punch, kick, humanity).
+- Removed runtime seeding logic from actor sheet; defaults now handled by schema.
+- Atomic seeding flag update replaced by schema approach (legacy actors without `system.substats` get an empty object created once).
+
+## Changelog
+All notable changes to this project will be documented in this file.
+
+The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and uses Semantic Versioning while still in 0.0.x (breaking changes may still occur).
+
+## [0.0.3] - 2025-10-01
+### Added
+- README with overview, schema, seeding, roadmap, and development notes.
+- CHANGELOG file and manifest links (`readme`, `changelog`).
+- Centralized stat defaults module (`module/data/defaults.js`).
+- DataModel registration for Actor types.
+- Localization keys for Role, Level, Roll tooltip, Edit.
+
+### Changed
+- Bumped version to 0.0.3.
+- Actor sheet template now fully uses localization tokens.
+- Initiative and all references moved to uppercase `system.stats.*` structure.
+- Skill rank fallback set to 0 instead of 5.
+- Seeding wrapped with error handling.
+
+### Removed
+- Deprecated `character-sheet.hbs` (legacy template).
+- Legacy lowercase `system.abilities` usage (now auto-migrated on sheet load only).
+
+### Migration
+- Opening an Actor with old `system.abilities` automatically migrates to `system.stats`; WILL -> COOL and MOVE -> MA.
+
+## [0.0.2] - 2025-09-30
+### Added
+- Initial public prototype (stats, seeding, basic actor sheet, lowercase abilities schema).
+
+## [0.0.1] - 2025-09-29
+### Added
+- Internal scaffolding commit (unreleased) with initial manifest and placeholder data.
+
+---
+Future: 0.0.4 planned for derived stat calculations & mecha groundwork.

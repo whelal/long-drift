@@ -1,0 +1,110 @@
+<form class="{{cssClass}} flexcol" autocomplete="off">
+  <header class="sheet-header flexrow">
+    <img class="profile" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" alt="{{actor.name}}" />
+    <div class="header-fields">
+      <h1><input name="name" type="text" value="{{actor.name}}" placeholder="{{localize 'MF.Name'}}"/></h1>
+      <div class="header-actions">
+        <button type="button" class="link-token-button" title="Link this Actor to the selected Token">Link Token</button>
+        <button type="button" class="unlink-token-button" title="Unlink this Actor from the selected Token">Unlink Token</button>
+      </div>
+      
+      <div class="header-stats flexrow">
+        <div class="header-field">
+          <label>AGE</label>
+          <input name="system.meta.age" type="number" value="{{system.meta.age}}" placeholder="35"/>
+        </div>
+        <div class="header-field">
+          <label>POINTS</label>
+          <input name="system.meta.points" type="number" value="{{system.meta.points}}" placeholder="75"/>
+        </div>
+      </div>
+      <div class="header-profile-box">
+        <div class="profile-grid">
+          <div class="profile-field-row appearance-row">
+            <div class="profile-field">
+              <label>Hair Color</label>
+              <input type="text" name="system.profile.hairColor" value="{{system.profile.hairColor}}" placeholder="Black" />
+            </div>
+            <div class="profile-field">
+              <label>Hair Style</label>
+              <input type="text" name="system.profile.hairStyle" value="{{system.profile.hairStyle}}" placeholder="Short" />
+            </div>
+            <div class="profile-field">
+              <label>Eye Color</label>
+              <input type="text" name="system.profile.eyeColor" value="{{system.profile.eyeColor}}" placeholder="Green" />
+            </div>
+          </div>
+          <div class="profile-field-row physical-row">
+            <div class="profile-field">
+              <label>Height</label>
+              <input type="text" name="system.profile.height" value="{{system.profile.height}}" placeholder="6'2\"" />
+            </div>
+            <div class="profile-field">
+              <label>Weight</label>
+              <input type="text" name="system.profile.weight" value="{{system.profile.weight}}" placeholder="180 lbs" />
+            </div>
+            <div class="profile-field">
+              <label>Sex</label>
+              <input type="text" name="system.profile.sex" value="{{system.profile.sex}}" placeholder="M/F/NB" />
+            </div>
+          </div>
+          <div class="profile-field span-full">
+            <label>Personality Traits</label>
+            <input type="text" name="system.profile.personalityTraits" value="{{system.profile.personalityTraits}}" placeholder="Brooding, Loyal" />
+          </div>
+          <div class="profile-field-row values-row">
+            <div class="profile-field">
+              <label>Thing You Value Most</label>
+              <input type="text" name="system.profile.valueMost" value="{{system.profile.valueMost}}" placeholder="Honor" />
+            </div>
+            <div class="profile-field">
+              <label>Valued Possession</label>
+              <input type="text" name="system.profile.valuedPossession" value="{{system.profile.valuedPossession}}" placeholder="Family Blade" />
+            </div>
+            <div class="profile-field">
+              <label>Person You Value Most</label>
+              <input type="text" name="system.profile.personValueMost" value="{{system.profile.personValueMost}}" placeholder="Sibling" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- header content only (substats moved into Stats tab) -->
+    <!-- Homebrew notice removed from header; see HOMEBREW_NOTICE.md in system folder -->
+  </header>
+
+  <nav class="sheet-tabs tabs">
+    <a class="item" data-tab="stats">{{localize 'MF.TabStats'}}</a>
+    <a class="item" data-tab="combat">{{localize 'MF.TabCombat'}}</a>
+    <a class="item" data-tab="skills">{{localize 'MF.TabSkills'}}</a>
+    <a class="item" data-tab="body">{{localize 'MF.TabMekton'}}</a>
+    <a class="item" data-tab="mecha">{{localize 'MF.TabMecha' 'Mecha'}}</a>
+    <a class="item" data-tab="snaggletooth">Snaggletooth</a>
+    <a class="item" data-tab="psi">{{localize 'MF.TabPsi'}}</a>
+    <a class="item" data-tab="witcher">{{localize 'MF.TabWitcher'}}</a>
+    <a class="item" data-tab="equipment">{{localize 'MF.TabEquipment' 'Equipment'}}</a>
+    <a class="item" data-tab="notes">{{localize 'MF.TabNotes' 'Notes'}}</a>
+  </nav>
+
+  <section class="sheet-body">
+  {{{_tabStatsHtml}}}
+
+  {{{_tabCombatHtml}}}
+
+  {{{_tabSkillsHtml}}}
+
+  {{{_tabBodyHtml}}}
+
+  {{{_tabMechaHtml}}}
+
+  {{{_tabSnaggletoothHtml}}}
+
+  {{{_tabPsiHtml}}}
+
+  {{{_tabWitcherHtml}}}
+
+  {{{_tabEquipmentHtml}}}
+
+  {{{_tabNotesHtml}}}
+  </section>
+</form>

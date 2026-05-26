@@ -1,0 +1,114 @@
+{
+  "Actor": {
+    "types": ["character", "npc"],
+    "templates": {
+      "base": {
+        "stats": {
+          "INT": { "value": 5 },
+          "REF": { "value": 5 },
+          "TECH": { "value": 5 },
+          "COOL": { "value": 5 },
+          "ATTR": { "value": 5 },
+          "LUCK": { "value": 5 },
+          "MA": { "value": 5 },
+          "BODY": { "value": 5 },
+          "EMP": { "value": 5 }
+        },
+        "skills": {},
+        "spells": {},
+        "equipment": {
+          "gear": "",
+          "totalWeight": 0
+        },
+        "body": {
+          "locations": {
+            "head": {
+              "label": "Head",
+              "sp": 4,
+              "spMax": 4,
+              "hp": 4,
+              "hpMax": 4,
+              "ablates": true,
+              "itemId": null
+            },
+            "torso": {
+              "label": "Torso",
+              "sp": 10,
+              "spMax": 10,
+              "hp": 10,
+              "hpMax": 10,
+              "ablates": true,
+              "itemId": null
+            },
+            "rArm": {
+              "label": "Right Arm",
+              "sp": 5,
+              "spMax": 5,
+              "hp": 5,
+              "hpMax": 5,
+              "ablates": true,
+              "itemId": null
+            },
+            "lArm": {
+              "label": "Left Arm",
+              "sp": 5,
+              "spMax": 5,
+              "hp": 5,
+              "hpMax": 5,
+              "ablates": true,
+              "itemId": null
+            },
+            "rLeg": {
+              "label": "Right Leg",
+              "sp": 6,
+              "spMax": 6,
+              "hp": 6,
+              "hpMax": 6,
+              "ablates": true,
+              "itemId": null
+            },
+            "lLeg": {
+              "label": "Left Leg",
+              "sp": 6,
+              "spMax": 6,
+              "hp": 6,
+              "hpMax": 6,
+              "ablates": true,
+              "itemId": null
+            }
+          },
+          "notes": ""
+        }
+      }
+    },
+    "character": { "templates": ["base"] },
+    "npc": { "templates": ["base"] }
+  },
+  "Item": {
+    "types": ["skill", "spell", "weapon", "armor"],
+    "templates": {
+      "base": {
+        "description": "",
+        "weight": 0
+      }
+    },
+    "weapon": {
+      "templates": ["base"],
+      "name": "",
+      "wa": 0,
+      "range": "",
+      "damage": "",
+      "shots": 0,
+      "bv": "",
+      "skill": "",
+      "note": "",
+      "isMecha": false
+    },
+    "armor": { "templates": ["base"] },
+    "spell": {
+      "templates": ["base"],
+      "school": "",
+      "staminaCost": 0
+    }
+  }
+}
