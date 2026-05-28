@@ -5,6 +5,12 @@
 
 ### Added
 - One-time world migration (`migrationVersion` v1) to normalize legacy skill stat keys to RED-compatible keys.
+- Critical Injury macro tables and runnable macros for Body, Head, and Mech Critical.
+- Macro installer script to create/update world macros: `Critical Injury — Body`, `Critical Injury — Head`, and `Mech Critical`.
+
+### Changed
+- Damage-roll automation now detects critical injury triggers (2+ sixes on d6 damage), prompts Body/Head selection, rolls 2d6 injury table result, posts a formatted card, and can auto-apply the +5 bonus damage.
+- Auto-triggered critical injuries are now persisted to `system.criticalInjuries.entries` on the actor sheet.
 
 ### Migration
 - Legacy stat keys are remapped during migration:

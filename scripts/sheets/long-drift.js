@@ -5,6 +5,176 @@ import { ActorDataModel } from "../../module/data/actor-data-model.js";
 import { WeaponDataModel, SkillDataModel, ArmorDataModel } from "../../module/data/item-data-model.js";
 import { syncActorCoreItems } from "../../module/seed.js";
 import { runOneTimeWorldMigration, MIGRATION_VERSION } from "../../module/migrations/world-migration.js";
+import { CRITICAL_INJURIES_BODY, CRITICAL_INJURIES_HEAD } from "../../macros/critical-injury.macro.js";
+
+function _isDamageRollMessage(message) {
+  const flavor = String(message?.flavor || "").toLowerCase();
+  return flavor.includes("rolls damage for");
+}
+
+function _countSixesOnD6(message) {
+  const rolls = Array.isArray(message?.rolls)
+    ? message.rolls
+    : (message?.roll ? [message.roll] : []);
+
+  let count = 0;
+  for (const roll of rolls) {
+    for (const term of roll?.terms || []) {
+      if (!term || term.faces !== 6 || !Array.isArray(term.results)) continue;
+      for (const result of term.results) {
+        if (result?.active === false) continue;
+        if (Number(result?.result) === 6) count += 1;
+      }
+    }
+  }
+  return count;
+}
+
+function _getActorFromMessage(message) {
+  const actorId = message?.speaker?.actor;
+  if (!actorId) return null;
+  return game.actors?.get(actorId) || null;
+}
+
+async function _promptCriticalLocation(actor, sixCount) {
+  return await new Promise((resolve) => {
+    const actorName = actor?.name || "Unknown Actor";
+    const content = `
+      <p><strong>Critical Injury Triggered</strong> for <strong>${actorName}</strong>.</p>
+      <p>Detected <strong>${sixCount}</strong> sixes on d6 damage dice.</p>
+      <p><em>Triggered when 2+ dice show 6s on a damage roll.</em></p>
+      <label style="display:flex;align-items:center;gap:0.35rem;margin-top:0.5rem;">
+        <input type="checkbox" name="applyBonus" checked />
+        Apply +5 bonus damage now
+      </label>
+    `;
+
+    new Dialog({
+      title: "Critical Injury",
+      content,
+      buttons: {
+        body: {
+          icon: '<i class="fas fa-user-injured"></i>',
+          label: "Body",
+          callback: (html) => resolve({
+            location: "body",
+            applyBonus: !!html.find('[name="applyBonus"]').is(':checked')
+          })
+        },
+        head: {
+          icon: '<i class="fas fa-head-side-mask"></i>',
+          label: "Head",
+          callback: (html) => resolve({
+            location: "head",
+            applyBonus: !!html.find('[name="applyBonus"]').is(':checked')
+          })
+        },
+        cancel: {
+          icon: '<i class="fas fa-times"></i>',
+          label: "Ignore",
+          callback: () => resolve(null)
+        }
+      },
+      default: "body",
+      close: () => resolve(null)
+    }).render(true);
+  });
+}
+
+async function _applyCriticalInjuryResult({ actor, location, injury, total, applyBonus }) {
+  if (!actor) return;
+
+  const entries = Array.isArray(actor.system?.criticalInjuries?.entries)
+    ? foundry.utils.deepClone(actor.system.criticalInjuries.entries)
+    : [];
+
+  entries.push({
+    name: `${injury.name} (${location})`,
+    healed: false,
+    notes: `Effect: ${injury.effect} | Quick Fix: ${injury.quickFix} | Treatment: ${injury.treatment} | Roll: ${total}`
+  });
+
+  const updateData = {
+    "system.criticalInjuries.entries": entries
+  };
+
+  if (applyBonus) {
+    const hpCurrent = Number(actor.system?.substats?.hp_current ?? 0) || 0;
+    updateData["system.substats.hp_current"] = Math.max(0, hpCurrent - 5);
+  }
+
+  await actor.update(updateData);
+}
+
+async function _postCriticalInjuryCard({ actor, location, rollTotal, injury, applyBonus }) {
+  const title = location === "head" ? "Critical Injury — Head" : "Critical Injury — Body";
+  const trigger = "Triggered when 2+ dice show 6s on a damage roll.";
+  const appliedNote = applyBonus ? "Applied +5 bonus damage to HP current." : "Bonus damage not auto-applied.";
+
+  const content = `
+    <div class="long-drift critical-injury-card">
+      <h2 style="margin:0 0 0.25rem 0;">${title}</h2>
+      <p style="margin:0 0 0.35rem 0;"><strong>+5 bonus damage applied separately</strong></p>
+      <p style="margin:0 0 0.35rem 0;"><em>${trigger}</em></p>
+      <p style="margin:0 0 0.35rem 0;"><strong>${appliedNote}</strong></p>
+      <p style="margin:0.2rem 0;"><strong>Roll:</strong> 2d6 = <strong>${rollTotal}</strong></p>
+      <p style="margin:0.2rem 0;"><strong>Injury:</strong> ${injury.name}</p>
+      <p style="margin:0.2rem 0;"><strong>Effect:</strong> ${injury.effect}</p>
+      <p style="margin:0.2rem 0;"><strong>Quick Fix DV:</strong> ${injury.quickFix}</p>
+      <p style="margin:0.2rem 0;"><strong>Treatment DV:</strong> ${injury.treatment}</p>
+    </div>
+  `;
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content
+  });
+}
+
+async function _handleAutoCriticalInjury(message, userId) {
+  if (game.user?.id !== userId) return;
+  if (!_isDamageRollMessage(message)) return;
+
+  const sixCount = _countSixesOnD6(message);
+  if (sixCount < 2) return;
+
+  const actor = _getActorFromMessage(message);
+  if (!actor) {
+    ui.notifications.warn("Critical injury trigger detected, but no actor was associated with the damage roll.");
+    return;
+  }
+
+  const decision = await _promptCriticalLocation(actor, sixCount);
+  if (!decision) return;
+
+  const table = decision.location === "head" ? CRITICAL_INJURIES_HEAD : CRITICAL_INJURIES_BODY;
+  const roll = new Roll("2d6");
+  await roll.evaluate();
+
+  const total = Number(roll.total) || 2;
+  const injury = table[total] || {
+    name: "Unknown Injury",
+    effect: "No entry found.",
+    quickFix: "N/A",
+    treatment: "N/A"
+  };
+
+  await _applyCriticalInjuryResult({
+    actor,
+    location: decision.location === "head" ? "Head" : "Body",
+    injury,
+    total,
+    applyBonus: !!decision.applyBonus
+  });
+
+  await _postCriticalInjuryCard({
+    actor,
+    location: decision.location,
+    rollTotal: total,
+    injury,
+    applyBonus: !!decision.applyBonus
+  });
+}
 
 Hooks.once("init", () => {
   console.log("long-drift | init");
@@ -316,6 +486,14 @@ Hooks.on("updateTokenActor", (tokenActor, changes, options, userId) => {
 
 Hooks.once("ready", async () => {
   console.log("long-drift | ready");
+
+  Hooks.on("createChatMessage", async (message, options, userId) => {
+    try {
+      await _handleAutoCriticalInjury(message, userId);
+    } catch (err) {
+      console.error("long-drift | Auto critical injury hook failed", err);
+    }
+  });
 
   try {
     await runOneTimeWorldMigration();
