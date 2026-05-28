@@ -150,6 +150,30 @@
   grid-column: 1 / -1;
 }
 
+.red-shell .red-vital.red-vital-wound.wound-healthy,
+.long-drift.sheet.actor .red-vital.red-vital-wound.wound-healthy {
+  background: #e6f6e6;
+  border-color: #2f8f2f;
+}
+
+.red-shell .red-vital.red-vital-wound.wound-light,
+.long-drift.sheet.actor .red-vital.red-vital-wound.wound-light {
+  background: #fff4d7;
+  border-color: #d28a00;
+}
+
+.red-shell .red-vital.red-vital-wound.wound-serious,
+.long-drift.sheet.actor .red-vital.red-vital-wound.wound-serious {
+  background: #ffe5cf;
+  border-color: #cf5f00;
+}
+
+.red-shell .red-vital.red-vital-wound.wound-mortal,
+.long-drift.sheet.actor .red-vital.red-vital-wound.wound-mortal {
+  background: #ffd7d7;
+  border-color: #b30000;
+}
+
 .red-shell .red-vital-edit .value-input,
 .red-shell .red-vital-search .value-input,
 .long-drift.sheet.actor .red-vital-edit .value-input,

@@ -72,7 +72,10 @@ export class ActorDataModel extends foundry.abstract.DataModel {
                 enc: new fields.NumberField({initial: 0, min: 0, integer: true}),
                 punch: new fields.NumberField({initial: 0, min: 0, integer: true}),
                 kick: new fields.NumberField({initial: 0, min: 0, integer: true}),
-                humanity: new fields.NumberField({initial: 0, min: 0, integer: true})
+                humanity: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                humanityMax: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                woundState: new fields.StringField({initial: "Healthy"}),
+                woundStateSubtitle: new fields.StringField({initial: "No penalties"})
             }),
             hp: new fields.SchemaField({
                 current: new fields.NumberField({initial: 10, min: 0, integer: true}),
@@ -361,5 +364,43 @@ export class ActorDataModel extends foundry.abstract.DataModel {
             // Player notes field
             notes: new fields.StringField({ initial: "" })
         };
+    }
+
+    prepareDerivedData() {
+        const stats = this.stats ?? {};
+        const substats = this.substats ?? {};
+
+        const body = Number(stats?.BODY?.value ?? 0) || 0;
+        const emp = Number(stats?.EMP?.value ?? 0) || 0;
+
+        const hpMax = 10 + (5 * Math.ceil(body / 2));
+        const humanityMax = emp * 10;
+
+        const hpCurrentRaw = Number(substats.hp_current ?? hpMax);
+        const hpCurrent = Number.isFinite(hpCurrentRaw)
+            ? Math.max(0, Math.min(Math.trunc(hpCurrentRaw), hpMax))
+            : hpMax;
+
+        const seriousThreshold = Math.ceil(hpMax / 2);
+        let woundState = "Healthy";
+        let woundStateSubtitle = "No penalties";
+
+        if (hpCurrent <= 0) {
+            woundState = "Mortally Wounded";
+            woundStateSubtitle = "-4 all Actions / -6 MOVE / Death Save each Turn";
+        } else if (hpCurrent < seriousThreshold) {
+            woundState = "Seriously Wounded";
+            woundStateSubtitle = "-2 all Actions / Stabilization DV13";
+        } else if (hpCurrent < hpMax) {
+            woundState = "Lightly Wounded";
+            woundStateSubtitle = "Stabilization DV10";
+        }
+
+        substats.hp = hpMax;
+        substats.hp_current = hpCurrent;
+        substats.humanityMax = humanityMax;
+        substats.death = body;
+        substats.woundState = woundState;
+        substats.woundStateSubtitle = woundStateSubtitle;
     }
 }

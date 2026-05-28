@@ -1,4 +1,5 @@
 import { LONG_DRIFT_CORE_SKILLS } from "./data/skills.js";
+import { CPR_WEAPONS_COMPENDIUM } from "./data/weapons-compendium.js";
 
 
 const HARD_MECHA_GUNNERY = "Mecha Gunnery (H)";
@@ -11,6 +12,8 @@ const LEGACY_SKILL_RENAMES = {
 };
 // Deprecated skill names to purge (non-PSI duplicates)
 const DEPRECATED_SKILL_NAMES = ["Stat Boost"]; // keep only Stat Boost (phys) in PSI list
+const WEAPONS_PACK_LABEL = "Long Drift — Weapons";
+const WEAPONS_PACK_NAME = "long-drift-weapons";
 
 function normalizeStatKey(stat) {
   const s = String(stat || "").toUpperCase();
@@ -51,6 +54,101 @@ function normaliseSeedData(entry, folderId) {
     folder: folderId,
     system: sys
   };
+}
+
+function normaliseWeaponCompendiumEntry(entry) {
+  const clone = foundry.utils.deepClone(entry);
+  const system = clone.system ?? {};
+
+  clone.type = "weapon";
+  clone.system = {
+    ...system,
+    concealable: !!system.concealable,
+    hands: Number.isFinite(Number(system.hands)) ? Number(system.hands) : 2,
+    cost: Number.isFinite(Number(system.cost)) ? Number(system.cost) : 0,
+    autofire: Number.isFinite(Number(system.autofire)) ? Number(system.autofire) : 0,
+    pen: Number.isFinite(Number(system.pen)) ? Number(system.pen) : 0,
+    isMecha: !!system.isMecha
+  };
+
+  return clone;
+}
+
+async function ensureWeaponsCompendiumPack() {
+  const existing = game.packs.find((pack) => {
+    const isItemPack = pack.documentName === "Item";
+    const isWorldPack = pack.metadata?.packageType === "world";
+    const sameName = pack.metadata?.name === WEAPONS_PACK_NAME;
+    const sameLabel = pack.metadata?.label === WEAPONS_PACK_LABEL;
+    return isItemPack && isWorldPack && (sameName || sameLabel);
+  });
+
+  if (existing) return existing;
+
+  const metadata = {
+    type: "Item",
+    label: WEAPONS_PACK_LABEL,
+    name: WEAPONS_PACK_NAME,
+    package: "world",
+    system: game.system.id
+  };
+
+  const created = await CompendiumCollection.createCompendium(metadata);
+  return game.packs.get(created.collection) ?? created;
+}
+
+export async function seedWeaponsCompendium() {
+  try {
+    const pack = await ensureWeaponsCompendiumPack();
+    const existingDocs = await pack.getDocuments();
+    const existingByName = new Map(existingDocs.map((doc) => [doc.name, doc]));
+
+    const toCreate = [];
+    const toUpdate = [];
+
+    for (const source of CPR_WEAPONS_COMPENDIUM) {
+      const desired = normaliseWeaponCompendiumEntry(source);
+      const current = existingByName.get(desired.name);
+
+      if (!current) {
+        toCreate.push(desired);
+        continue;
+      }
+
+      const patch = {};
+      if (current.type !== desired.type) patch.type = desired.type;
+      if ((current.img || "") !== (desired.img || "")) patch.img = desired.img;
+      if (!foundry.utils.objectsEqual(current.system ?? {}, desired.system ?? {})) {
+        patch.system = desired.system;
+      }
+
+      if (Object.keys(patch).length) {
+        toUpdate.push({ _id: current.id, ...patch });
+      }
+    }
+
+    if (toCreate.length) {
+      await Item.createDocuments(toCreate, { pack: pack.collection });
+    }
+
+    if (toUpdate.length) {
+      await Item.updateDocuments(toUpdate, { pack: pack.collection });
+    }
+
+    ui.notifications.info(
+      `Weapons compendium synced: ${toCreate.length} created, ${toUpdate.length} updated (${WEAPONS_PACK_LABEL}).`
+    );
+
+    return {
+      pack: pack.collection,
+      created: toCreate.length,
+      updated: toUpdate.length
+    };
+  } catch (err) {
+    console.error("long-drift | Weapons compendium seed failed", err);
+    ui.notifications.error("Long Drift weapons compendium seed failed. See console.");
+    throw err;
+  }
 }
 
 async function ensureActorHasSkills(actor) {

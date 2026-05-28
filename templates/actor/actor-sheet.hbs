@@ -12,15 +12,22 @@
     <div class="red-vitals-grid">
       <div class="red-vital">
         <span class="label">Hit Points</span>
-        <span class="value">{{system.substats.hp_current}} / {{system.substats.hp}}</span>
+        <span class="value">
+          <input class="value-input auto-fit-input" name="system.substats.hp_current" type="number" min="0" step="1" value="{{system.substats.hp_current}}" data-fit-min="10"/>
+          / {{system.substats.hp}}
+        </span>
       </div>
       <div class="red-vital">
         <span class="label">Humanity</span>
-        <span class="value">{{system.substats.humanity}}</span>
+        <span class="value">
+          <input class="value-input auto-fit-input" name="system.substats.humanity" type="number" min="0" step="1" value="{{system.substats.humanity}}" data-fit-min="10"/>
+          / {{system.substats.humanityMax}}
+        </span>
       </div>
-      <div class="red-vital">
+      <div class="red-vital red-vital-wound {{woundStateClass}}">
         <span class="label">Wound State</span>
-        <span class="value">{{#if (gt system.substats.hp_current 0)}}Stable{{else}}Critical{{/if}}</span>
+        <span class="value">{{system.substats.woundState}}</span>
+        <span class="value" style="display:block;font-size:0.72em;line-height:1.2;opacity:0.9;">{{system.substats.woundStateSubtitle}}</span>
       </div>
       <div class="red-vital">
         <span class="label">Death Save</span>
@@ -28,11 +35,11 @@
       </div>
       <div class="red-vital">
         <span class="label">I.P.</span>
-        <span class="value">{{system.meta.points}}</span>
+        <input class="value-input auto-fit-input" name="system.meta.points" type="number" min="0" step="1" value="{{system.meta.points}}" data-fit-min="10"/>
       </div>
       <div class="red-vital">
         <span class="label">Reputation</span>
-        <span class="value">{{system.meta.reputation}}</span>
+        <input class="value-input auto-fit-input" name="system.meta.reputation" type="number" min="0" step="1" value="{{system.meta.reputation}}" data-fit-min="10"/>
       </div>
       <div class="red-vital red-vital-wide red-vital-edit">
         <span class="label">Role Ability Rank</span>

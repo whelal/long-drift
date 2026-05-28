@@ -1,10 +1,90 @@
 // module/script/sheets/actor-sheet.js
 import { STAT_DEFAULT_VALUES, applyStatDefaults } from "../../module/data/defaults.js";
 import { LONG_DRIFT_CORE_SKILLS } from "../../module/data/skills.js";
+import { WEAPON_RANGE_DVS } from "../../module/data/weapon-ranges.js";
 
 const CPR_CORE_SKILL_NAMES = new Set(LONG_DRIFT_CORE_SKILLS.map(skill => skill.name));
 
 export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
+  static _getWeaponTypeConfig(weaponType) {
+    const key = String(weaponType || "").trim();
+    return WEAPON_RANGE_DVS?.[key] || null;
+  }
+
+  static _toDisplayDv(rawDv) {
+    return Number.isFinite(Number(rawDv)) ? Number(rawDv) : "-";
+  }
+
+  static _getWeaponRangeBands(weaponType) {
+    const ranges = this._getWeaponTypeConfig(weaponType)?.ranges;
+
+    if (Array.isArray(ranges)) {
+      return ranges.map((band) => ({
+        label: String(band?.label || "-"),
+        dv: this._toDisplayDv(band?.dv)
+      }));
+    }
+
+    // Backward-compatible shape support for older object-based range data.
+    const legacy = ranges || {};
+    const order = ["close", "medium", "long", "extreme"];
+    return order.map((key) => {
+      const band = legacy?.[key];
+      return {
+        label: String(band?.label || "-"),
+        dv: this._toDisplayDv(band?.dv)
+      };
+    });
+  }
+
+  static _getWeaponRangeTooltip(weaponType) {
+    const bands = this._getWeaponRangeBands(weaponType);
+    return bands.map((band) => `${band.label}: DV ${band.dv}`).join("\n");
+  }
+
+  static _getWeaponAutofireSummary(weaponType) {
+    const config = this._getWeaponTypeConfig(weaponType);
+    if (!config?.hasAutofire) return "";
+
+    const dvTable = Array.isArray(config.autofireDVs)
+      ? config.autofireDVs
+          .map((band) => `${String(band?.label || "-")}: DV ${this._toDisplayDv(band?.dv)}`)
+          .join(" | ")
+      : "";
+
+    const maxInfo = Number.isFinite(Number(config.autofireMax))
+      ? `Max ${Number(config.autofireMax)}`
+      : "";
+
+    return [maxInfo, dvTable].filter(Boolean).join(" • ");
+  }
+
+  _updateWeaponDvDisplay(rowElement, weaponType) {
+    if (!rowElement) return;
+    const bands = this.constructor._getWeaponRangeBands(weaponType);
+    const tooltip = this.constructor._getWeaponRangeTooltip(weaponType);
+    const grid = rowElement.querySelector('.weapon-dv-grid');
+    if (!grid) return;
+
+    grid.innerHTML = "";
+
+    for (const band of bands) {
+      const node = document.createElement('span');
+      node.textContent = `${band.label}: DV ${band.dv}`;
+      grid.appendChild(node);
+    }
+
+    const autofireSummary = this.constructor._getWeaponAutofireSummary(weaponType);
+    if (autofireSummary) {
+      const afNode = document.createElement('span');
+      afNode.classList.add('weapon-autofire-inline');
+      afNode.textContent = `AF mode: ${autofireSummary}`;
+      grid.appendChild(afNode);
+    }
+
+    grid.title = tooltip;
+  }
+
   // Sort by .system.sort (or .item.system.sort), then by name
   static bySortThenName(a, b, collator) {
     const as = Number(a.system?.sort ?? a.item?.system?.sort ?? 999999);
@@ -311,6 +391,8 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       normalizeIntField("system.meta.points", Number(this.actor.system?.meta?.points ?? 0));
       normalizeIntField("system.meta.reputation", Number(this.actor.system?.meta?.reputation ?? 0));
       normalizeIntField("system.meta.eurobucks", Number(this.actor.system?.meta?.eurobucks ?? 500));
+      normalizeIntField("system.substats.humanity", Number(this.actor.system?.substats?.humanity ?? 0));
+      normalizeIntField("system.substats.hp_current", Number(this.actor.system?.substats?.hp_current ?? 0));
 
       // Core stat values can come through as arrays when multiple tabs include the same fields.
       // Coerce all to integers so DataModel schema validation always receives numbers.
@@ -427,6 +509,41 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     ctx.items = this.actor.items ?? [];
     ctx.editable = this.isEditable;
 
+    const weaponTypeOptions = Object.keys(WEAPON_RANGE_DVS || {});
+    const weaponSkillOptions = LONG_DRIFT_CORE_SKILLS
+      .filter(skill => ["Fighting", "Ranged Weapon"].includes(String(skill.system?.category || "")))
+      .map(skill => skill.name);
+    ctx.weaponTypeOptions = weaponTypeOptions;
+    ctx.weaponSkillOptions = weaponSkillOptions;
+    ctx.combatWeapons = this.actor.items
+      .filter(i => i.type === "weapon")
+      .map(item => {
+        const weaponType = String(item.system?.weaponType || "Pistol");
+        const hasAutofire = !!this.constructor._getWeaponTypeConfig(weaponType)?.hasAutofire;
+        const autofireSummary = this.constructor._getWeaponAutofireSummary(weaponType);
+        const attackModes = [{ key: "single", label: "ATK", title: "Attack roll (linked skill)" }];
+        if (hasAutofire) {
+          attackModes.push({ key: "autofire", label: "AF", title: "Autofire roll (Autofire (x2))" });
+        }
+        return {
+          id: item.id,
+          type: item.type,
+          name: item.name,
+          system: {
+            ...item.system,
+            weaponType,
+            isMecha: !!item.system?.isMecha,
+            rof: this.constructor._num(item.system?.rof, 1)
+          },
+          displayScale: item.system?.isMecha ? "Mech-Scale" : "Personal-Scale",
+          hasAutofire,
+          autofireSummary,
+          attackModes,
+          rangeBands: this.constructor._getWeaponRangeBands(weaponType),
+          rangeTooltip: this.constructor._getWeaponRangeTooltip(weaponType)
+        };
+      });
+
     // Migration: legacy abilities -> stats
     if (ctx.system.abilities && !ctx.system.stats) {
       console.warn("long-drift | Migrating legacy system.abilities -> RED stat schema.");
@@ -510,6 +627,14 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     // RED role ability tracking and critical injury list.
     ctx.system.role ??= { name: '', ability: '', rank: 4, notes: '' };
     ctx.system.role.name = this.constructor._cleanDisplayText(ctx.system.role.name);
+    const woundState = String(ctx.system?.substats?.woundState || 'Healthy');
+    const woundStateClassMap = {
+      'Healthy': 'wound-healthy',
+      'Lightly Wounded': 'wound-light',
+      'Seriously Wounded': 'wound-serious',
+      'Mortally Wounded': 'wound-mortal'
+    };
+    ctx.woundStateClass = woundStateClassMap[woundState] || 'wound-healthy';
     ctx.system.criticalInjuries ??= { entries: [] };
     const injuryEntries = Array.isArray(ctx.system.criticalInjuries.entries)
       ? ctx.system.criticalInjuries.entries
@@ -1000,7 +1125,15 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     html.on('click', '.weapon-roll', ev => this._onRollWeapon(ev));
     html.on('click', '.weapon-damage-roll', ev => this._onRollWeaponDamage(ev));
     html.on('click', '.item-delete', ev => this._onDeleteWeapon(ev));
+    html.on('click', 'details.weapon-card summary input, details.weapon-card summary select, details.weapon-card summary button', ev => {
+      ev.stopPropagation();
+    });
     html.on('change', '.weapon-field', ev => this._onChangeWeaponField(ev));
+
+    html.find('[data-item-id].weapon-card').each((_, row) => {
+      const select = row.querySelector('select[data-field="weaponType"]');
+      if (select) this._updateWeaponDvDisplay(row, select.value || 'Pistol');
+    });
 
     // (Category collapse feature removed)
     // Refresh body item icons now that listeners are attached
@@ -1698,9 +1831,10 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
           name: "New Weapon",
           wa: 0,
           range: "",
+          weaponType: "Pistol",
           damage: "",
+          rof: 1,
           shots: 0,
-          bv: "",
           skill: "",
           isMecha: false
         }
@@ -1743,25 +1877,34 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
   /** Change weapon field */
   async _onChangeWeaponField(ev) {
     const input = ev.currentTarget;
-    const tr = input.closest('tr[data-item-id]');
-    if (!tr) return;
+    const row = input.closest('[data-item-id]');
+    if (!row) return;
     
-    const itemId = tr.dataset.itemId;
+    const itemId = row.dataset.itemId;
     const field = input.dataset.field;
     if (!itemId || !field) return;
 
     const item = this.actor.items.get(itemId);
     if (!item) return;
 
-    let val = input.value;
+    let val = input.type === 'checkbox' ? input.checked : input.value;
     
     // Parse numbers for numeric fields
-    if (['wa', 'shots'].includes(field)) {
+    if (['wa', 'shots', 'rof'].includes(field)) {
       val = MektonActorSheet._num(val, 0);
+      if (field === 'rof') val = Math.max(1, val);
     }
 
+    if (field === 'weaponType') {
+      this._updateWeaponDvDisplay(row, val || 'Pistol');
+    }
+
+    const updateData = field === 'name'
+      ? { name: String(val || '').trim() }
+      : { [`system.${field}`]: val };
+
     try {
-      await item.update({ [`system.${field}`]: val });
+      await item.update(updateData);
     } catch (err) {
       console.error(`long-drift | Failed to update weapon field ${field}`, err);
       ui.notifications.error(`Failed to update weapon ${field}`);
@@ -1794,7 +1937,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       return;
     }
 
-    const weaponName = weapon.system?.name || weapon.name;
+    const weaponName = weapon.name;
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
     const flavor = `<strong>${this.actor.name}</strong> rolls damage for <strong>${weaponName}</strong>: <em>${formula}</em> = <strong style="font-size: 1.2em; color: #c0392b;">${roll.total}</strong>`;
     await roll.toMessage({ speaker, flavor });
@@ -1809,23 +1952,14 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const weapon = this.actor.items.get(itemId);
     if (!weapon) return;
 
-    const skillName = weapon.system?.skill;
+    const mode = String(button.dataset.mode || "single");
+    const skillName = mode === "autofire" ? "Autofire (x2)" : weapon.system?.skill;
     const wa = MektonActorSheet._num(weapon.system?.wa, 0);
 
     // Find the corresponding skill in the actor's items
     let skillTotal = 0;
     if (skillName) {
-      const skillMap = {
-        'automatic-weapon': 'Automatic Weapon',
-        'blade': 'Blade',
-        'handgun': 'Handgun',
-        'hand-to-hand': 'Hand to Hand',
-        'rifle': 'Rifle',
-        'whip': 'Whip'
-      };
-      
-      const skillDisplayName = skillMap[skillName];
-      const skill = this.actor.items.find(i => i.type === 'skill' && i.name === skillDisplayName);
+      const skill = this.actor.items.find(i => i.type === 'skill' && i.name === skillName);
       
       if (skill) {
         const statKey = this.constructor.normalizeStatKey(skill.system?.stat || "INT");
@@ -1848,8 +1982,9 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const capTag = capped ? ` <span style="color: #999; font-size: 0.85em;">[Cap ${maxExtra}]</span>` : '';
     
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
-    const weaponName = weapon.system?.name || weapon.name;
-    const flavor = `<strong>${this.actor.name}</strong> rolls ${weaponName}${tag}${capTag} = (${plusStr}${minusStr}) + Skill ${skillTotal} + WA ${wa} = <strong style="font-size: 1.2em; color: #4a90e2;">${rollTotal}</strong>`;
+    const weaponName = weapon.name;
+    const modeLabel = mode === "autofire" ? "Autofire" : "Attack";
+    const flavor = `<strong>${this.actor.name}</strong> rolls ${weaponName} [${modeLabel}]${tag}${capTag} = (${plusStr}${minusStr}) + Skill ${skillTotal} + WA ${wa} = <strong style="font-size: 1.2em; color: #4a90e2;">${rollTotal}</strong>`;
     
     await roll.toMessage({ speaker, flavor });
   }

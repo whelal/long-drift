@@ -16,6 +16,40 @@
     .tab.combat .weapons-table tbody tr { border-bottom: 1px solid #ddd; }
     .tab.combat .weapons-table td { padding: 3px 8px; vertical-align: middle; }
     .tab.combat .weapons-table td:last-child { width: 28px; text-align: center; }
+    .tab.combat .weapon-type-cell { display: flex; align-items: center; gap: 4px; }
+    .tab.combat .weapon-type-cell select { flex: 1; min-width: 0; }
+    .tab.combat .weapon-range-info { width: 20px; height: 20px; padding: 0; font-size: 0.72rem; line-height: 1; }
+    .tab.combat .weapon-cards { display: grid; gap: 6px; border: 1px solid #bbb; border-top: none; padding: 6px; background: #f7f7f7; }
+    .tab.combat details.weapon-card { border: 1px solid #b8b8b8; background: #fff; border-radius: 4px; }
+    .tab.combat details.weapon-card summary { list-style: none; cursor: pointer; padding: 4px 6px; }
+    .tab.combat details.weapon-card summary::-webkit-details-marker { display: none; }
+    .tab.combat .weapon-summary-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .tab.combat .weapon-expand-icon { font-size: 0.75rem; color: #444; width: 12px; text-align: center; flex-shrink: 0; }
+    .tab.combat details.weapon-card[open] .weapon-expand-icon { transform: rotate(90deg); display: inline-block; }
+    .tab.combat .weapon-name-input { flex: 1 1 260px; min-width: 160px; }
+    .tab.combat .weapon-type-select { width: 140px; flex: 0 0 140px; }
+    .tab.combat .weapon-damage-input { width: 74px; flex: 0 0 74px; }
+    .tab.combat .weapon-scale-pill { font-size: 0.62rem; font-weight: 700; border: 1px solid #555; border-radius: 10px; padding: 1px 6px; white-space: nowrap; }
+    .tab.combat .weapon-scale-pill.mech { background: #222; color: #fff; border-color: #111; }
+    .tab.combat .weapon-scale-pill.personal { background: #ececec; color: #333; }
+    .tab.combat .weapon-attack-modes { display: flex; gap: 4px; margin-left: auto; }
+    .tab.combat .weapon-summary-line .weapon-field,
+    .tab.combat .weapon-mode-btn,
+    .tab.combat .weapon-icon-btn {
+      height: 26px;
+      font-size: 0.72rem;
+      padding: 0 6px;
+      line-height: 1;
+    }
+    .tab.combat .weapon-mode-btn { min-width: 30px; }
+    .tab.combat .weapon-icon-btn { width: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+    .tab.combat .weapon-card-body { border-top: 1px solid #ddd; padding: 6px; display: grid; gap: 8px; }
+    .tab.combat .weapon-detail-grid { display: grid; grid-template-columns: 70px 70px 70px 170px 1fr 90px; gap: 6px; align-items: end; }
+    .tab.combat .weapon-detail { display: grid; gap: 2px; }
+    .tab.combat .weapon-detail label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: #555; }
+    .tab.combat .weapon-dv-panel { border-top: 1px dashed #c9c9c9; padding-top: 4px; }
+    .tab.combat .weapon-dv-grid { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.66rem; color: #666; }
+    .tab.combat .weapon-autofire-inline { color: #666; font-weight: 600; }
   </style>
 
   <div class="combat-container">
@@ -44,70 +78,80 @@
       {{/if}}
 
       <div class="combat-section-header" style="margin-top: 12px;">WEAPONS</div>
-      <table class="weapons-table" style="font-size: 0.75rem;">
-        <thead>
-          <tr style="background: #f0f0f0; font-weight: 600; border-bottom: 1px solid #999;">
-            <th style="padding: 2px 4px; text-align: left; width: 18%;">Name</th>
-            <th style="padding: 2px 4px; text-align: center; width: 6%;">WA</th>
-            <th style="padding: 2px 4px; text-align: left; width: 10%;">Range</th>
-            <th style="padding: 2px 4px; text-align: left; width: 16%;">Damage</th>
-            <th style="padding: 2px 4px; text-align: center; width: 6%;">Shots</th>
-            <th style="padding: 2px 4px; text-align: center; width: 6%;">BV</th>
-            <th style="padding: 2px 4px; text-align: left; width: 10%;">Skill</th>
-            <th style="padding: 2px 4px; text-align: left; width: 13%;">Note</th>
-            <th style="padding: 2px 4px; text-align: center; width: 15%;">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{#each items as |item|}}
-            {{#if (eq item.type 'weapon')}}
-              {{#unless item.system.isMecha}}
-              <tr data-item-id="{{item.id}}" style="border-bottom: 1px solid #ddd;">
-                <td style="padding: 2px 4px;">
-                  <input type="text" name="system.weapons.{{@index}}.name" class="weapon-field" value="{{item.system.name}}" style="width: 95%; font-size: 0.75rem; padding: 1px 2px;" data-field="name"/>
-                </td>
-                <td style="padding: 2px 4px; text-align: center;">
-                  <input type="number" name="system.weapons.{{@index}}.wa" class="weapon-field" value="{{item.system.wa}}" style="width: 100%; font-size: 0.75rem; padding: 1px 2px;" data-field="wa"/>
-                </td>
-                <td style="padding: 2px 4px;">
-                  <input type="text" name="system.weapons.{{@index}}.range" class="weapon-field" value="{{item.system.range}}" style="width: 100%; font-size: 0.75rem; padding: 1px 2px;" data-field="range"/>
-                </td>
-                <td style="padding: 2px 4px;">
-                  <div style="display: flex; align-items: center; gap: 2px;">
-                    <input type="text" name="system.weapons.{{@index}}.damage" class="weapon-field" value="{{item.system.damage}}" style="flex: 1; font-size: 0.75rem; padding: 1px 2px;" data-field="damage" placeholder="e.g. 2d6+3"/>
-                    <button type="button" class="weapon-damage-roll" title="Roll damage: {{item.system.damage}}" data-item-id="{{item.id}}" style="font-size: 0.7rem; padding: 0px 2px; width: 18px; flex-shrink: 0;"><i class="fas fa-dice"></i></button>
-                  </div>
-                </td>
-                <td style="padding: 2px 4px; text-align: center;">
-                  <input type="number" name="system.weapons.{{@index}}.shots" class="weapon-field" value="{{item.system.shots}}" style="width: 100%; font-size: 0.75rem; padding: 1px 2px;" data-field="shots"/>
-                </td>
-                <td style="padding: 2px 4px; text-align: center;">
-                  <input type="text" name="system.weapons.{{@index}}.bv" class="weapon-field" value="{{item.system.bv}}" style="width: 100%; font-size: 0.75rem; padding: 1px 2px;" data-field="bv" placeholder="—"/>
-                </td>
-                <td style="padding: 2px 4px;">
-                  <select name="system.weapons.{{@index}}.skill" class="weapon-field" style="width: 95%; font-size: 0.75rem; padding: 1px 2px;" data-field="skill">
+      <div class="weapon-cards">
+        {{#each combatWeapons as |item|}}
+          <details class="weapon-card" data-item-id="{{item.id}}">
+            <summary>
+              <div class="weapon-summary-line">
+                <span class="weapon-expand-icon"><i class="fas fa-chevron-right"></i></span>
+                <input type="text" name="name" class="weapon-field weapon-name-input" value="{{item.name}}" data-field="name" />
+                <span class="weapon-scale-pill {{#if item.system.isMecha}}mech{{else}}personal{{/if}}">{{item.displayScale}}</span>
+                <select name="system.weapons.{{@index}}.weaponType" class="weapon-field weapon-type-select" data-field="weaponType">
+                  {{#each @root.weaponTypeOptions as |weaponType|}}
+                    <option value="{{weaponType}}" {{#if (eq weaponType ../system.weaponType)}}selected{{/if}}>{{weaponType}}</option>
+                  {{/each}}
+                </select>
+                <input type="text" name="system.weapons.{{@index}}.damage" class="weapon-field weapon-damage-input" value="{{item.system.damage}}" data-field="damage" placeholder="2d6" />
+                <div class="weapon-attack-modes">
+                  {{#each item.attackModes as |mode|}}
+                    <button type="button" class="weapon-roll weapon-mode-btn" title="{{mode.title}}" data-item-id="{{../id}}" data-mode="{{mode.key}}">{{mode.label}}</button>
+                  {{/each}}
+                  <button type="button" class="weapon-damage-roll weapon-icon-btn" title="Roll damage: {{item.system.damage}}" data-item-id="{{item.id}}"><i class="fas fa-dice"></i></button>
+                  <button type="button" class="item-delete weapon-icon-btn" title="Delete Weapon" data-item-id="{{item.id}}"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>
+            </summary>
+
+            <div class="weapon-card-body">
+              <div class="weapon-detail-grid">
+                <div class="weapon-detail">
+                  <label>WA</label>
+                  <input type="number" name="system.weapons.{{@index}}.wa" class="weapon-field" value="{{item.system.wa}}" data-field="wa" />
+                </div>
+                <div class="weapon-detail">
+                  <label>ROF</label>
+                  <input type="number" name="system.weapons.{{@index}}.rof" class="weapon-field" value="{{item.system.rof}}" min="1" data-field="rof" />
+                </div>
+                <div class="weapon-detail">
+                  <label>Shots</label>
+                  <input type="number" name="system.weapons.{{@index}}.shots" class="weapon-field" value="{{item.system.shots}}" data-field="shots" />
+                </div>
+                <div class="weapon-detail">
+                  <label>Skill</label>
+                  <select name="system.weapons.{{@index}}.skill" class="weapon-field" data-field="skill">
                     <option value="" {{#unless item.system.skill}}selected{{/unless}}>—</option>
-                    <option value="automatic-weapon" {{#if (eq item.system.skill 'automatic-weapon')}}selected{{/if}}>Auto Weapon</option>
-                    <option value="blade" {{#if (eq item.system.skill 'blade')}}selected{{/if}}>Blade</option>
-                    <option value="handgun" {{#if (eq item.system.skill 'handgun')}}selected{{/if}}>Handgun</option>
-                    <option value="hand-to-hand" {{#if (eq item.system.skill 'hand-to-hand')}}selected{{/if}}>Hand to Hand</option>
-                    <option value="rifle" {{#if (eq item.system.skill 'rifle')}}selected{{/if}}>Rifle</option>
-                    <option value="whip" {{#if (eq item.system.skill 'whip')}}selected{{/if}}>Whip</option>
+                    {{#each @root.weaponSkillOptions as |skillName|}}
+                      <option value="{{skillName}}" {{#if (eq skillName ../system.skill)}}selected{{/if}}>{{skillName}}</option>
+                    {{/each}}
                   </select>
-                </td>
-                <td style="padding: 2px 4px;">
-                  <input type="text" name="system.weapons.{{@index}}.note" class="weapon-field" value="{{item.system.note}}" style="width: 95%; font-size: 0.75rem; padding: 1px 2px;" data-field="note" placeholder="…"/>
-                </td>
-                <td style="padding: 2px 4px; text-align: center;">
-                  <button type="button" class="weapon-roll" title="Roll {{item.name}}" data-item-id="{{item.id}}" style="font-size: 0.7rem; padding: 0px 2px; margin-right: 2px; width: 18px;"><i class="fas fa-dice-d20"></i></button>
-                  <button type="button" class="item-delete" title="Delete Weapon" data-item-id="{{item.id}}" style="font-size: 0.7rem; padding: 0px 2px; width: 18px;"><i class="fas fa-trash"></i></button>
-                </td>
-              </tr>
-              {{/unless}}
-            {{/if}}
-          {{/each}}
-        </tbody>
-      </table>
+                </div>
+                <div class="weapon-detail">
+                  <label>Note</label>
+                  <input type="text" name="system.weapons.{{@index}}.note" class="weapon-field" value="{{item.system.note}}" data-field="note" placeholder="…" />
+                </div>
+                <div class="weapon-detail">
+                  <label>Mech</label>
+                  <label style="display:flex; align-items:center; gap:4px; font-size:0.72rem; text-transform:none; font-weight:600; color:#222;">
+                    <input type="checkbox" class="weapon-field" data-field="isMecha" {{#if item.system.isMecha}}checked{{/if}} />
+                    Scale
+                  </label>
+                </div>
+              </div>
+
+              <div class="weapon-dv-panel">
+                <div class="weapon-dv-grid" aria-label="Range band DVs">
+                  {{#each item.rangeBands as |band|}}
+                    <span>{{band.label}}: DV {{band.dv}}</span>
+                  {{/each}}
+                  {{#if item.hasAutofire}}
+                    <span class="weapon-autofire-inline">AF mode: {{item.autofireSummary}}</span>
+                  {{/if}}
+                </div>
+              </div>
+            </div>
+          </details>
+        {{/each}}
+      </div>
       <div style="padding: 4px 8px; border: 1px solid #bbb; border-top: none; text-align: center; background: #f5f5f5;">
         <button type="button" class="create-weapon-item" style="font-size: 0.75rem; padding: 2px 8px;"><i class="fas fa-plus"></i> Add Weapon</button>
       </div>

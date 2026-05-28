@@ -18,10 +18,18 @@ export class WeaponDataModel extends ItemDataModel {
       name: new fields.StringField({ initial: "" }),
       wa: new fields.NumberField({ initial: 0, integer: true }),
       range: new fields.StringField({ initial: "" }),
+      weaponType: new fields.StringField({ initial: "Pistol" }),
       damage: new fields.StringField({ initial: "" }),
+      rof: new fields.NumberField({ initial: 1, integer: true, min: 1 }),
       shots: new fields.NumberField({ initial: 0, integer: true }),
-      bv: new fields.StringField({ initial: "" }),
-      skill: new fields.StringField({ initial: "" })
+      concealable: new fields.BooleanField({ initial: false }),
+      hands: new fields.NumberField({ initial: 2, integer: true, min: 1 }),
+      cost: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      autofire: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      pen: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      skill: new fields.StringField({ initial: "" }),
+      note: new fields.StringField({ initial: "" }),
+      isMecha: new fields.BooleanField({ initial: false })
     });
   }
 }
