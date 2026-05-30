@@ -12,9 +12,11 @@ export class MektonFusionItemSheet extends foundry.appv1.sheets.ItemSheet {
 
   getData(options = {}) {
     const context = super.getData(options);
+    context.system = this.object.system ?? {};
     
     // Add helper data to context
     context.isSkill = this.object.type === "skill";
+    context.isCyberware = this.object.type === "cyberware";
     context.isCustom = this.object.system?.custom;
     
     // Debug logging

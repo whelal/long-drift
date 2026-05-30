@@ -88,6 +88,42 @@
               "hpMax": 6,
               "ablates": true,
               "itemId": null
+            },
+            "rHand": {
+              "label": "Right Hand",
+              "sp": 4,
+              "spMax": 4,
+              "hp": 4,
+              "hpMax": 4,
+              "ablates": true,
+              "itemId": null
+            },
+            "lHand": {
+              "label": "Left Hand",
+              "sp": 4,
+              "spMax": 4,
+              "hp": 4,
+              "hpMax": 4,
+              "ablates": true,
+              "itemId": null
+            },
+            "rFoot": {
+              "label": "Right Foot",
+              "sp": 4,
+              "spMax": 4,
+              "hp": 4,
+              "hpMax": 4,
+              "ablates": true,
+              "itemId": null
+            },
+            "lFoot": {
+              "label": "Left Foot",
+              "sp": 4,
+              "spMax": 4,
+              "hp": 4,
+              "hpMax": 4,
+              "ablates": true,
+              "itemId": null
             }
           },
           "notes": ""
@@ -98,7 +134,7 @@
     "npc": { "templates": ["base"] }
   },
   "Item": {
-    "types": ["skill", "weapon", "armor"],
+    "types": ["skill", "weapon", "armor", "cyberware"],
     "templates": {
       "base": {
         "description": "",
@@ -124,5 +160,17 @@
       "isMecha": false
     },
     "armor": { "templates": ["base"] }
+    ,
+    "cyberware": {
+      "templates": ["base"],
+      "slot": "torso",
+      "description": "",
+      "spaces": 1,
+      "humanityLoss": 0,
+      "cost": 0,
+      "armor": 0,
+      "integrity": 0,
+      "note": ""
+    }
   }
 }

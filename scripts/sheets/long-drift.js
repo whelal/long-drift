@@ -2,7 +2,7 @@
 import { MektonActorSheet } from "./actor-sheet.js";
 import { MektonFusionItemSheet } from "../../module/sheets/item-sheet.js";
 import { ActorDataModel } from "../../module/data/actor-data-model.js";
-import { WeaponDataModel, SkillDataModel, ArmorDataModel } from "../../module/data/item-data-model.js";
+import { WeaponDataModel, SkillDataModel, ArmorDataModel, CyberwareDataModel } from "../../module/data/item-data-model.js";
 import { syncActorCoreItems } from "../../module/seed.js";
 import { runOneTimeWorldMigration, MIGRATION_VERSION } from "../../module/migrations/world-migration.js";
 import { CRITICAL_INJURIES_BODY, CRITICAL_INJURIES_HEAD } from "../../macros/critical-injury.macro.js";
@@ -242,6 +242,7 @@ Hooks.once("init", () => {
   CONFIG.Item.dataModels.skill = SkillDataModel;
   CONFIG.Item.dataModels.weapon = WeaponDataModel;
   CONFIG.Item.dataModels.armor = ArmorDataModel;
+  CONFIG.Item.dataModels.cyberware = CyberwareDataModel;
 
   // Use namespaced DocumentSheetConfig (no deprecation warning)
   const DSC = foundry.applications.apps.DocumentSheetConfig;
@@ -258,7 +259,7 @@ Hooks.once("init", () => {
 
   // Register our item sheet
   DSC.registerSheet(Item, "long-drift", MektonFusionItemSheet, {
-    types: ["skill", "weapon", "armor"],
+    types: ["skill", "weapon", "armor", "cyberware"],
     makeDefault: true,
     label: "Long Drift Item Sheet"
   });

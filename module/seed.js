@@ -1,5 +1,6 @@
 import { LONG_DRIFT_CORE_SKILLS } from "./data/skills.js";
 import { CPR_WEAPONS_COMPENDIUM } from "./data/weapons-compendium.js";
+import { CPR_CYBERWARE_COMPENDIUM } from "./data/cyberware-compendium.js";
 
 
 const HARD_MECHA_GUNNERY = "Mecha Gunnery (H)";
@@ -14,6 +15,25 @@ const LEGACY_SKILL_RENAMES = {
 const DEPRECATED_SKILL_NAMES = ["Stat Boost"]; // keep only Stat Boost (phys) in PSI list
 const WEAPONS_PACK_LABEL = "Long Drift — Weapons";
 const WEAPONS_PACK_NAME = "long-drift-weapons";
+const CYBERWARE_PACK_LABEL = "Long Drift — Cyberware";
+const CYBERWARE_PACK_NAME = "long-drift-cyberware";
+
+function ensureRuntimeCyberwareTypeRegistration() {
+  try {
+    const itemTypes = game.system?.documentTypes?.Item;
+    if (itemTypes && !Object.prototype.hasOwnProperty.call(itemTypes, "cyberware")) {
+      itemTypes.cyberware = {};
+    }
+
+    const itemModel = game.model?.Item;
+    if (itemModel && !Object.prototype.hasOwnProperty.call(itemModel, "cyberware")) {
+      // Keep a minimal runtime fallback so Item validation accepts the type.
+      itemModel.cyberware = foundry.utils.deepClone(itemModel.armor ?? {});
+    }
+  } catch (err) {
+    console.warn("long-drift | Failed to ensure cyberware runtime type registration", err);
+  }
+}
 
 function normalizeStatKey(stat) {
   const s = String(stat || "").toUpperCase();
@@ -68,7 +88,28 @@ function normaliseWeaponCompendiumEntry(entry) {
     cost: Number.isFinite(Number(system.cost)) ? Number(system.cost) : 0,
     autofire: Number.isFinite(Number(system.autofire)) ? Number(system.autofire) : 0,
     pen: Number.isFinite(Number(system.pen)) ? Number(system.pen) : 0,
+    quality: ["Poor", "Standard", "Excellent"].includes(String(system.quality || "")) ? String(system.quality) : "Standard",
     isMecha: !!system.isMecha
+  };
+
+  return clone;
+}
+
+function normaliseCyberwareCompendiumEntry(entry) {
+  const clone = foundry.utils.deepClone(entry);
+  const system = clone.system ?? {};
+
+  clone.type = "cyberware";
+  clone.system = {
+    ...system,
+    slot: String(system.slot || "torso"),
+    description: String(system.description || ""),
+    spaces: Number.isFinite(Number(system.spaces)) ? Math.max(0, Number(system.spaces)) : 1,
+    humanityLoss: Number.isFinite(Number(system.humanityLoss)) ? Number(system.humanityLoss) : 0,
+    cost: Number.isFinite(Number(system.cost)) ? Math.max(0, Number(system.cost)) : 0,
+    armor: Number.isFinite(Number(system.armor)) ? Number(system.armor) : 0,
+    integrity: Number.isFinite(Number(system.integrity)) ? Number(system.integrity) : 0,
+    note: String(system.note || "")
   };
 
   return clone;
@@ -89,6 +130,29 @@ async function ensureWeaponsCompendiumPack() {
     type: "Item",
     label: WEAPONS_PACK_LABEL,
     name: WEAPONS_PACK_NAME,
+    package: "world",
+    system: game.system.id
+  };
+
+  const created = await CompendiumCollection.createCompendium(metadata);
+  return game.packs.get(created.collection) ?? created;
+}
+
+async function ensureCyberwareCompendiumPack() {
+  const existing = game.packs.find((pack) => {
+    const isItemPack = pack.documentName === "Item";
+    const isWorldPack = pack.metadata?.packageType === "world";
+    const sameName = pack.metadata?.name === CYBERWARE_PACK_NAME;
+    const sameLabel = pack.metadata?.label === CYBERWARE_PACK_LABEL;
+    return isItemPack && isWorldPack && (sameName || sameLabel);
+  });
+
+  if (existing) return existing;
+
+  const metadata = {
+    type: "Item",
+    label: CYBERWARE_PACK_LABEL,
+    name: CYBERWARE_PACK_NAME,
     package: "world",
     system: game.system.id
   };
@@ -147,6 +211,66 @@ export async function seedWeaponsCompendium() {
   } catch (err) {
     console.error("long-drift | Weapons compendium seed failed", err);
     ui.notifications.error("Long Drift weapons compendium seed failed. See console.");
+    throw err;
+  }
+}
+
+export async function seedCyberwareCompendium() {
+  try {
+    ensureRuntimeCyberwareTypeRegistration();
+
+    const pack = await ensureCyberwareCompendiumPack();
+    const existingDocs = await pack.getDocuments();
+    const normalizeName = (name) => String(name || "").trim().toLowerCase();
+    const existingByName = new Map(existingDocs.map((doc) => [doc.name, doc]));
+    const existingByNormalizedName = new Map(existingDocs.map((doc) => [normalizeName(doc.name), doc]));
+
+    const toCreate = [];
+    const toUpdate = [];
+
+    for (const source of CPR_CYBERWARE_COMPENDIUM) {
+      const desired = normaliseCyberwareCompendiumEntry(source);
+      const current = existingByName.get(desired.name)
+        ?? existingByNormalizedName.get(normalizeName(desired.name));
+
+      if (!current) {
+        toCreate.push(desired);
+        continue;
+      }
+
+      const patch = {};
+      if ((current.name || "") !== (desired.name || "")) patch.name = desired.name;
+      if (current.type !== desired.type) patch.type = desired.type;
+      if ((current.img || "") !== (desired.img || "")) patch.img = desired.img;
+      if (!foundry.utils.objectsEqual(current.system ?? {}, desired.system ?? {})) {
+        patch.system = desired.system;
+      }
+
+      if (Object.keys(patch).length) {
+        toUpdate.push({ _id: current.id, ...patch });
+      }
+    }
+
+    if (toCreate.length) {
+      await Item.createDocuments(toCreate, { pack: pack.collection });
+    }
+
+    if (toUpdate.length) {
+      await Item.updateDocuments(toUpdate, { pack: pack.collection });
+    }
+
+    ui.notifications.info(
+      `Cyberware compendium synced: ${toCreate.length} created, ${toUpdate.length} updated (${CYBERWARE_PACK_LABEL}).`
+    );
+
+    return {
+      pack: pack.collection,
+      created: toCreate.length,
+      updated: toUpdate.length
+    };
+  } catch (err) {
+    console.error("long-drift | Cyberware compendium seed failed", err);
+    ui.notifications.error("Long Drift cyberware compendium seed failed. See console.");
     throw err;
   }
 }

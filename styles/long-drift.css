@@ -1039,8 +1039,106 @@ html.theme-dark .long-drift {
 .long-drift .tab.body .mf-dot.mf-torso { background: #4ecdc4; }
 .long-drift .tab.body .mf-dot.mf-rArm { background: #45b7d1; }
 .long-drift .tab.body .mf-dot.mf-lArm { background: #96ceb4; }
+.long-drift .tab.body .mf-dot.mf-rHand { background: #74b9ff; }
+.long-drift .tab.body .mf-dot.mf-lHand { background: #81ecec; }
 .long-drift .tab.body .mf-dot.mf-rLeg { background: #ffeaa7; }
 .long-drift .tab.body .mf-dot.mf-lLeg { background: #fdcb6e; }
+.long-drift .tab.body .mf-dot.mf-rFoot { background: #fab1a0; }
+.long-drift .tab.body .mf-dot.mf-lFoot { background: #ff7675; }
+
+.long-drift .tab.body .mf-cyberware-space-summary {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--mf-soft-border);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.03);
+  font-size: 0.9rem;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list {
+  border: 1px solid var(--mf-soft-border);
+  border-radius: 4px;
+  padding: 0.45rem 0.6rem;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cyberware-installed-title {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list li {
+  display: grid;
+  grid-template-columns: minmax(120px, 160px) 1fr;
+  gap: 0.35rem 0.75rem;
+  align-items: start;
+  padding: 0.2rem 0;
+  border-bottom: 1px dotted rgba(0, 0, 0, 0.15);
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list li:last-child {
+  border-bottom: none;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-loc {
+  font-weight: 600;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-item {
+  text-align: left;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-item .mf-cw-name {
+  font-weight: 600;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-item .mf-cw-meta {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-item .mf-cw-desc {
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-remove {
+  margin-top: 0.3rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--mf-soft-border);
+  border-radius: 3px;
+  background: rgba(180, 0, 0, 0.08);
+  color: inherit;
+  cursor: pointer;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-remove:hover {
+  background: rgba(180, 0, 0, 0.16);
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-remove.mf-cw-delete {
+  background: rgba(220, 0, 0, 0.15);
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-remove.mf-cw-delete:hover {
+  background: rgba(220, 0, 0, 0.25);
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-item.is-empty {
+  opacity: 0.7;
+}
+
+.long-drift .tab.body .mf-cyberware-installed-list .mf-cw-item.is-installed {
+  color: var(--mf-accent);
+}
 
 .long-drift .tab.body .mf-row > div {
   display: flex;

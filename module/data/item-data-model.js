@@ -27,6 +27,7 @@ export class WeaponDataModel extends ItemDataModel {
       cost: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
       autofire: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
       pen: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      quality: new fields.StringField({ initial: "Standard" }),
       skill: new fields.StringField({ initial: "" }),
       note: new fields.StringField({ initial: "" }),
       isMecha: new fields.BooleanField({ initial: false })
@@ -58,6 +59,23 @@ export class ArmorDataModel extends ItemDataModel {
     const parentSchema = super.defineSchema();
     return foundry.utils.mergeObject(parentSchema, {
       armorValue: new fields.NumberField({ initial: 0, integer: true })
+    });
+  }
+}
+
+// Schema for cyberware items
+export class CyberwareDataModel extends ItemDataModel {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    const parentSchema = super.defineSchema();
+    return foundry.utils.mergeObject(parentSchema, {
+      slot: new fields.StringField({ initial: "torso" }),
+      spaces: new fields.NumberField({ initial: 1, integer: true, min: 0 }),
+      humanityLoss: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      cost: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      armor: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      integrity: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      note: new fields.StringField({ initial: "" })
     });
   }
 }

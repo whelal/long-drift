@@ -26,8 +26,17 @@
     .tab.combat .weapon-summary-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
     .tab.combat .weapon-expand-icon { font-size: 0.75rem; color: #444; width: 12px; text-align: center; flex-shrink: 0; }
     .tab.combat details.weapon-card[open] .weapon-expand-icon { transform: rotate(90deg); display: inline-block; }
-    .tab.combat .weapon-name-input { flex: 1 1 260px; min-width: 160px; }
-    .tab.combat .weapon-type-select { width: 140px; flex: 0 0 140px; }
+    .tab.combat .weapon-name-input {
+      flex: 0 0 20ch;
+      width: 20ch;
+      min-width: 12ch;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tab.combat .weapon-type-select { width: 20ch; flex: 0 0 20ch; }
+    .tab.combat .weapon-quality-select { width: 12ch; flex: 0 0 12ch; }
+    .tab.combat .weapon-skill-select { width: 16ch; flex: 0 0 16ch; }
     .tab.combat .weapon-damage-input { width: 74px; flex: 0 0 74px; }
     .tab.combat .weapon-scale-pill { font-size: 0.62rem; font-weight: 700; border: 1px solid #555; border-radius: 10px; padding: 1px 6px; white-space: nowrap; }
     .tab.combat .weapon-scale-pill.mech { background: #222; color: #fff; border-color: #111; }
@@ -44,7 +53,7 @@
     .tab.combat .weapon-mode-btn { min-width: 30px; }
     .tab.combat .weapon-icon-btn { width: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
     .tab.combat .weapon-card-body { border-top: 1px solid #ddd; padding: 6px; display: grid; gap: 8px; }
-    .tab.combat .weapon-detail-grid { display: grid; grid-template-columns: 70px 70px 70px 170px 1fr 90px; gap: 6px; align-items: end; }
+    .tab.combat .weapon-detail-grid { display: grid; grid-template-columns: 64px 64px 70px 106px 160px 1fr 90px; gap: 6px; align-items: end; }
     .tab.combat .weapon-detail { display: grid; gap: 2px; }
     .tab.combat .weapon-detail label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: #555; }
     .tab.combat .weapon-dv-panel { border-top: 1px dashed #c9c9c9; padding-top: 4px; }
@@ -84,7 +93,7 @@
             <summary>
               <div class="weapon-summary-line">
                 <span class="weapon-expand-icon"><i class="fas fa-chevron-right"></i></span>
-                <input type="text" name="name" class="weapon-field weapon-name-input" value="{{item.name}}" data-field="name" />
+                <input type="text" class="weapon-field weapon-name-input" value="{{item.name}}" data-field="name" />
                 <span class="weapon-scale-pill {{#if item.system.isMecha}}mech{{else}}personal{{/if}}">{{item.displayScale}}</span>
                 <select name="system.weapons.{{@index}}.weaponType" class="weapon-field weapon-type-select" data-field="weaponType">
                   {{#each @root.weaponTypeOptions as |weaponType|}}
@@ -117,8 +126,16 @@
                   <input type="number" name="system.weapons.{{@index}}.shots" class="weapon-field" value="{{item.system.shots}}" data-field="shots" />
                 </div>
                 <div class="weapon-detail">
+                  <label>Quality</label>
+                  <select name="system.weapons.{{@index}}.quality" class="weapon-field weapon-quality-select" data-field="quality">
+                    {{#each @root.weaponQualityOptions as |qualityOpt|}}
+                      <option value="{{qualityOpt}}" {{#if (eq qualityOpt ../system.quality)}}selected{{/if}}>{{qualityOpt}}</option>
+                    {{/each}}
+                  </select>
+                </div>
+                <div class="weapon-detail">
                   <label>Skill</label>
-                  <select name="system.weapons.{{@index}}.skill" class="weapon-field" data-field="skill">
+                  <select name="system.weapons.{{@index}}.skill" class="weapon-field weapon-skill-select" data-field="skill">
                     <option value="" {{#unless item.system.skill}}selected{{/unless}}>—</option>
                     {{#each @root.weaponSkillOptions as |skillName|}}
                       <option value="{{skillName}}" {{#if (eq skillName ../system.skill)}}selected{{/if}}>{{skillName}}</option>

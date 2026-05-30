@@ -2,10 +2,87 @@
 import { STAT_DEFAULT_VALUES, applyStatDefaults } from "../../module/data/defaults.js";
 import { LONG_DRIFT_CORE_SKILLS } from "../../module/data/skills.js";
 import { WEAPON_RANGE_DVS } from "../../module/data/weapon-ranges.js";
+import { CPR_WEAPONS_COMPENDIUM } from "../../module/data/weapons-compendium.js";
 
-const CPR_CORE_SKILL_NAMES = new Set(LONG_DRIFT_CORE_SKILLS.map(skill => skill.name));
+const normalizeSkillName = (name) => String(name || "").trim().toLowerCase();
+const CPR_CORE_SKILL_NAMES = new Set(LONG_DRIFT_CORE_SKILLS.map(skill => normalizeSkillName(skill.name)));
 
 export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
+  static _getWeaponTemplatesForType(weaponType) {
+    const type = String(weaponType || "").trim();
+    if (!type) return [];
+    return CPR_WEAPONS_COMPENDIUM.filter((w) => String(w?.system?.weaponType || "") === type);
+  }
+
+  static _getWeaponTemplateForType(weaponType) {
+    const matches = this._getWeaponTemplatesForType(weaponType);
+    return matches[0] || null;
+  }
+
+  static _weaponDocFromTemplate(template, fallbackType = "Pistol") {
+    const weaponType = String(template?.system?.weaponType || fallbackType || "Pistol");
+    const qualityRaw = String(template?.system?.quality || "Standard");
+    const quality = ["Poor", "Standard", "Excellent"].includes(qualityRaw) ? qualityRaw : "Standard";
+    return {
+      name: String(template?.name || `New ${weaponType}`),
+      type: "weapon",
+      img: template?.img || "",
+      system: {
+        wa: this._num(template?.system?.wa, 0),
+        range: String(template?.system?.range || ""),
+        weaponType,
+        damage: String(template?.system?.damage || ""),
+        rof: Math.max(1, this._num(template?.system?.rof, 1)),
+        shots: this._num(template?.system?.shots, 0),
+        quality,
+        skill: String(template?.system?.skill || ""),
+        isMecha: !!template?.system?.isMecha,
+        note: String(template?.system?.note || "")
+      }
+    };
+  }
+
+  async _promptWeaponTypeChoice(defaultType = "Pistol") {
+    const options = Object.keys(WEAPON_RANGE_DVS || {});
+    const selected = await Dialog.prompt({
+      title: "Add Weapon",
+      content: `
+        <p>Select weapon type:</p>
+        <select name="weaponType" style="width:100%;">
+          ${options.map((type) => `<option value="${type}" ${type === defaultType ? "selected" : ""}>${type}</option>`).join("")}
+        </select>
+      `,
+      label: "Create",
+      callback: (html) => String(html.find("[name='weaponType']").val() || defaultType)
+    });
+    return String(selected || defaultType);
+  }
+
+  async _promptWeaponTemplateChoice(weaponType, defaultTemplateName = "") {
+    const templates = this.constructor._getWeaponTemplatesForType(weaponType);
+    if (!templates.length) return null;
+    if (templates.length === 1) return templates[0];
+
+    const defaultName = templates.some((t) => t.name === defaultTemplateName)
+      ? defaultTemplateName
+      : templates[0].name;
+
+    const selectedName = await Dialog.prompt({
+      title: `Choose ${weaponType} Template`,
+      content: `
+        <p>Select weapon profile:</p>
+        <select name="weaponTemplate" style="width:100%;">
+          ${templates.map((t) => `<option value="${t.name}" ${t.name === defaultName ? "selected" : ""}>${t.name}</option>`).join("")}
+        </select>
+      `,
+      label: "Use Template",
+      callback: (html) => String(html.find("[name='weaponTemplate']").val() || defaultName)
+    });
+
+    const chosen = templates.find((t) => t.name === String(selectedName || defaultName));
+    return chosen || templates[0];
+  }
+
   static _getWeaponTypeConfig(weaponType) {
     const key = String(weaponType || "").trim();
     return WEAPON_RANGE_DVS?.[key] || null;
@@ -100,7 +177,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       if (it.type !== "skill") return false;
       if (it.system?.custom) return false;
       if (String(it.system?.category || "").toUpperCase() === "CUSTOM") return false;
-      return !CPR_CORE_SKILL_NAMES.has(it.name);
+      return !CPR_CORE_SKILL_NAMES.has(normalizeSkillName(it.name));
     });
 
     if (!staleSkills.length) return 0;
@@ -338,7 +415,12 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (Array.isArray(val)) {
           const cleaned = val.map(v => String(v ?? '').trim());
           const nonEmpty = cleaned.filter(v => v.length > 0);
-          val = nonEmpty.length ? nonEmpty[nonEmpty.length - 1] : cleaned[cleaned.length - 1] ?? '';
+          if (key === 'name') {
+            // Actor name can collide with other stray name inputs; keep the first value.
+            val = nonEmpty.length ? nonEmpty[0] : cleaned[0] ?? '';
+          } else {
+            val = nonEmpty.length ? nonEmpty[nonEmpty.length - 1] : cleaned[cleaned.length - 1] ?? '';
+          }
         }
         if (val === null || val === undefined) val = fallback;
         val = String(val).trim();
@@ -349,6 +431,7 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
         formData[key] = val;
       };
 
+  normalizeTextField('name', String(this.actor.name ?? ''));
       normalizeTextField('system.role.name', String(this.actor.system?.role?.name ?? ''));
       normalizeTextField('system.role.ability', String(this.actor.system?.role?.ability ?? ''));
       normalizeTextField('system.role.notes', String(this.actor.system?.role?.notes ?? ''));
@@ -495,16 +578,6 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const ctx = await super.getData(options);
     ctx.actor = this.actor;
 
-    // Migration enforcement: remove legacy non-CPR built-in skills from this actor.
-    try {
-      const removed = await this._purgeNonCprSkills();
-      if (removed > 0) {
-        ui.notifications.info(`Removed ${removed} non-CPR skills from ${this.actor.name}`);
-      }
-    } catch (e) {
-      console.warn("long-drift | Failed to purge non-CPR skills", e);
-    }
-
     ctx.system = this.actor.system ?? {};
     ctx.items = this.actor.items ?? [];
     ctx.editable = this.isEditable;
@@ -513,12 +586,16 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const weaponSkillOptions = LONG_DRIFT_CORE_SKILLS
       .filter(skill => ["Fighting", "Ranged Weapon"].includes(String(skill.system?.category || "")))
       .map(skill => skill.name);
+    const weaponQualityOptions = ["Poor", "Standard", "Excellent"];
     ctx.weaponTypeOptions = weaponTypeOptions;
     ctx.weaponSkillOptions = weaponSkillOptions;
+    ctx.weaponQualityOptions = weaponQualityOptions;
     ctx.combatWeapons = this.actor.items
       .filter(i => i.type === "weapon")
       .map(item => {
         const weaponType = String(item.system?.weaponType || "Pistol");
+        const qualityRaw = String(item.system?.quality || "Standard");
+        const quality = ["Poor", "Standard", "Excellent"].includes(qualityRaw) ? qualityRaw : "Standard";
         const hasAutofire = !!this.constructor._getWeaponTypeConfig(weaponType)?.hasAutofire;
         const autofireSummary = this.constructor._getWeaponAutofireSummary(weaponType);
         const attackModes = [{ key: "single", label: "ATK", title: "Attack roll (linked skill)" }];
@@ -532,10 +609,11 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
           system: {
             ...item.system,
             weaponType,
+            quality,
             isMecha: !!item.system?.isMecha,
             rof: this.constructor._num(item.system?.rof, 1)
           },
-          displayScale: item.system?.isMecha ? "Mech-Scale" : "Personal-Scale",
+          displayScale: item.system?.isMecha ? "MS" : "PS",
           hasAutofire,
           autofireSummary,
           attackModes,
@@ -577,12 +655,16 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       console.log('long-drift | Initializing body locations for', this.actor.name);
       const defaultBody = {
         locations: {
-          head:   { label: "Head",   sp: 4, spMax: 4, hp: 4, hpMax: 4, ablates: true, itemId: null },
-          torso:  { label: "Torso",  sp: 10, spMax: 10, hp: 10, hpMax: 10, ablates: true, itemId: null },
-          rArm:   { label: "Right Arm", sp: 5, spMax: 5, hp: 5, hpMax: 5, ablates: true, itemId: null },
-          lArm:   { label: "Left Arm",  sp: 5, spMax: 5, hp: 5, hpMax: 5, ablates: true, itemId: null },
-          rLeg:   { label: "Right Leg", sp: 6, spMax: 6, hp: 6, hpMax: 6, ablates: true, itemId: null },
-          lLeg:   { label: "Left Leg",  sp: 6, spMax: 6, hp: 6, hpMax: 6, ablates: true, itemId: null }
+          head:   { label: "Head",   sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+          torso:  { label: "Torso",  sp: 10, spMax: 10, hp: 10, hpMax: 10, mektonHp: 10, mektonHpMax: 10, ablates: true, itemId: null },
+          rArm:   { label: "Right Arm", sp: 5, spMax: 5, hp: 5, hpMax: 5, mektonHp: 5, mektonHpMax: 5, ablates: true, itemId: null },
+          lArm:   { label: "Left Arm",  sp: 5, spMax: 5, hp: 5, hpMax: 5, mektonHp: 5, mektonHpMax: 5, ablates: true, itemId: null },
+          rHand:  { label: "Right Hand", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+          lHand:  { label: "Left Hand",  sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+          rLeg:   { label: "Right Leg", sp: 6, spMax: 6, hp: 6, hpMax: 6, mektonHp: 6, mektonHpMax: 6, ablates: true, itemId: null },
+          lLeg:   { label: "Left Leg",  sp: 6, spMax: 6, hp: 6, hpMax: 6, mektonHp: 6, mektonHpMax: 6, ablates: true, itemId: null },
+          rFoot:  { label: "Right Foot", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+          lFoot:  { label: "Left Foot",  sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null }
         },
         notes: ""
       };
@@ -596,7 +678,62 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       }
     } else {
       console.log('long-drift | Body locations found:', this.actor.system.body.locations);
+      const requiredBodyLocations = {
+        rHand: { label: "Right Hand", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+        lHand: { label: "Left Hand", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+        rFoot: { label: "Right Foot", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+        lFoot: { label: "Left Foot", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null }
+      };
+      const patch = {};
+      const currentLocations = this.actor.system?.body?.locations || {};
+      for (const [k, def] of Object.entries(requiredBodyLocations)) {
+        if (!currentLocations[k]) patch[`system.body.locations.${k}`] = def;
+      }
+      if (Object.keys(patch).length) {
+        try {
+          await this.actor.update(patch);
+          ctx.system = this.actor.system ?? {};
+          console.log('long-drift | Added missing body locations:', Object.keys(patch));
+        } catch (e) {
+          console.warn('long-drift | Failed adding missing body locations', e);
+        }
+      }
     }
+
+    const bodyLocations = ctx.system?.body?.locations || {};
+    const spaceByLocation = {};
+    const installedByLocation = [];
+    let totalUsedSpaces = 0;
+    let installedCount = 0;
+    for (const [locKey, locData] of Object.entries(bodyLocations)) {
+      const itemId = locData?.itemId;
+      const item = itemId ? this.actor.items.get(itemId) : null;
+      let usedSpaces = 0;
+      if (item?.type === 'cyberware') {
+        usedSpaces = this.constructor._num(item.system?.spaces, 1);
+        installedCount += 1;
+      }
+      spaceByLocation[locKey] = usedSpaces;
+      totalUsedSpaces += usedSpaces;
+
+      installedByLocation.push({
+        key: locKey,
+        itemId: item?.type === 'cyberware' ? item.id : '',
+        label: String(locData?.label || locKey),
+        hasCyberware: item?.type === 'cyberware',
+        itemName: item?.type === 'cyberware' ? String(item.name || 'Unknown Cyberware') : 'None',
+        spaces: usedSpaces,
+        humanityCost: item?.type === 'cyberware' ? this.constructor._num(item.system?.humanityLoss, 0) : 0,
+        cost: item?.type === 'cyberware' ? this.constructor._num(item.system?.cost, 0) : 0,
+        description: item?.type === 'cyberware' ? String(item.system?.description || item.system?.note || '') : ''
+      });
+    }
+    ctx.cyberwareSpaces = {
+      byLocation: spaceByLocation,
+      totalUsed: totalUsedSpaces,
+      installedCount
+    };
+    ctx.cyberwareInstalledByLocation = installedByLocation;
     
     // Debug: Always log body state before template render
     console.log('long-drift | getData body check:', {
@@ -794,9 +931,14 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
         };
       });
 
-    // Keep only CPR skills in the active Skills tab (plus custom skills).
-    let nonPsi = flatSkills.filter(sk => sk.custom || CPR_CORE_SKILL_NAMES.has(sk.name));
-    nonPsi = nonPsi.filter(sk => sk.category !== 'PSI');
+    const visibleNonPsiSkills = flatSkills.filter(sk => sk.category !== 'PSI');
+
+    // Prefer the canonical CPR set, but fall back to existing non-PSI skills for older actors
+    // whose items have not been normalized yet.
+    let nonPsi = visibleNonPsiSkills.filter(sk => sk.custom || CPR_CORE_SKILL_NAMES.has(normalizeSkillName(sk.name)));
+    if (!nonPsi.length && visibleNonPsiSkills.length) {
+      nonPsi = visibleNonPsiSkills;
+    }
 
     // Favorites filtering per tab
     if (vsSkills.favOnly) nonPsi = nonPsi.filter(sk => sk.favorite);
@@ -959,6 +1101,9 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       if (row && row.length) row[0].focus();
     });
 
+    html.on('click', '[data-action="unequip-cyberware"]', ev => this._onUnequipBodyItem(ev));
+    html.on('click', '[data-action="remove-delete-cyberware"]', ev => this._onRemoveDeleteBodyItem(ev));
+
     // Quick actions for new single action row
     html.on('click', '#mf-btn-adjust-sp', async ev => {
       ev.preventDefault();
@@ -1051,33 +1196,133 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     // Keep other actions (ablate, heal1, dmg1, unequip, show-item) as before
 
-    // Drag armor item ? slot
+    // Drag armor/cyberware item -> slot
     const zones = html.find('.hit-zone');
-    zones.on('dragover', ev => ev.preventDefault());
+    zones.on('dragover', ev => {
+      ev.preventDefault();
+      if (ev.originalEvent?.dataTransfer) ev.originalEvent.dataTransfer.dropEffect = 'copy';
+    });
     zones.on('drop', async ev => {
       ev.preventDefault();
+      ev.stopPropagation();
       const loc = ev.currentTarget.dataset.loc;
-      const data = TextEditor.getDragEventData(ev);
+      const nativeEvent = ev.originalEvent ?? ev;
+
+      let data = {};
+      try {
+        data = TextEditor.getDragEventData(nativeEvent) || {};
+      } catch (_) {
+        data = {};
+      }
+
+      // Fallback for drag sources that only provide raw transfer text.
+      if (!data?.type && nativeEvent?.dataTransfer) {
+        const raw = nativeEvent.dataTransfer.getData('text/plain') || nativeEvent.dataTransfer.getData('text');
+        if (raw) {
+          try { data = JSON.parse(raw); } catch (_) {}
+        }
+      }
 
       // Accept Items only
-      if (data?.type !== 'Item') return;
+      if (data?.type !== 'Item' || !data?.uuid) return;
 
-      const item = await fromUuid(data.uuid);
-      if (!item || item.type !== 'armor') return;
+      const sourceItem = await fromUuid(data.uuid);
+      if (!sourceItem || !['armor', 'cyberware'].includes(sourceItem.type)) return;
 
-      // OPTIONAL: pull SP from item.system and set sp/spMax
-      const spVal = item.system?.sp ?? 0;
+      if (sourceItem.type === 'cyberware') {
+        const slotRaw = String(sourceItem.system?.slot || '').trim();
+        const slotKey = slotRaw.toLowerCase();
+        const targetLoc = String(loc || '');
+        const targetKey = targetLoc.toLowerCase();
+        const bodyLocs = this.actor.system?.body?.locations || {};
+
+        const canonicalByKey = {
+          head: 'head',
+          torso: 'torso',
+          rarm: 'rArm',
+          larm: 'lArm',
+          rleg: 'rLeg',
+          lleg: 'lLeg',
+          rhand: 'rHand',
+          lhand: 'lHand',
+          rfoot: 'rFoot',
+          lfoot: 'lFoot'
+        };
+
+        const slotAliases = {
+          eye: ['head'],
+          eyes: ['head'],
+          arm: ['lArm', 'rArm'],
+          arms: ['lArm', 'rArm'],
+          hand: ['lHand', 'rHand'],
+          hands: ['lHand', 'rHand'],
+          leg: ['lLeg', 'rLeg'],
+          legs: ['lLeg', 'rLeg'],
+          foot: ['lFoot', 'rFoot'],
+          feet: ['lFoot', 'rFoot'],
+          any: null,
+          all: null,
+          universal: null
+        };
+
+        let allowedLocs = null;
+        if (!slotKey || slotAliases[slotKey] === null) {
+          allowedLocs = null;
+        } else if (Array.isArray(slotAliases[slotKey])) {
+          allowedLocs = slotAliases[slotKey];
+        } else if (canonicalByKey[slotKey]) {
+          allowedLocs = [canonicalByKey[slotKey]];
+        } else {
+          // If the slot already matches a body location key, allow it.
+          const direct = Object.keys(bodyLocs).find(k => k.toLowerCase() === slotKey);
+          allowedLocs = direct ? [direct] : null;
+        }
+
+        if (Array.isArray(allowedLocs) && !allowedLocs.includes(targetLoc) && !allowedLocs.some(k => k.toLowerCase() === targetKey)) {
+          const targetLabel = bodyLocs?.[targetLoc]?.label || targetLoc;
+          const allowedLabels = allowedLocs
+            .map(k => bodyLocs?.[k]?.label || k)
+            .join(', ');
+          ui.notifications.warn(`${sourceItem.name} can only be installed in: ${allowedLabels}. You dropped it on ${targetLabel}.`);
+          return;
+        }
+      }
+
+      // Ensure dropped item exists on this actor so slot itemId and icon lookup work.
+      let item = this.actor.items.get(sourceItem.id);
+      if (!item) {
+        const created = await this.actor.createEmbeddedDocuments('Item', [sourceItem.toObject()]);
+        item = created?.[0] || null;
+      }
+      if (!item) return;
+
+      // Pull armor/integrity style values from either armor or cyberware schema.
+      const spVal = MektonActorSheet._num(
+        item.system?.sp ?? item.system?.armorValue ?? item.system?.armor,
+        0
+      );
+      const integrityVal = MektonActorSheet._num(
+        item.system?.mektonHp ?? item.system?.integrity,
+        0
+      );
       const path = `system.body.locations.${loc}`;
       try {
-        await this.actor.update({
+        const updateData = {
           [`${path}.itemId`]: item.id,
           [`${path}.sp`]: spVal,
           [`${path}.spMax`]: Math.max(spVal, foundry.utils.getProperty(this.actor, `${path}.spMax`) ?? spVal)
-        });
+        };
+
+        if (integrityVal > 0) {
+          updateData[`${path}.mektonHp`] = integrityVal;
+          updateData[`${path}.mektonHpMax`] = Math.max(integrityVal, foundry.utils.getProperty(this.actor, `${path}.mektonHpMax`) ?? integrityVal);
+        }
+
+        await this.actor.update(updateData);
         // Refresh icons after equip
         this._refreshBodyItemIcons();
       } catch (err) {
-        console.warn('long-drift | Failed equipping armor to body slot', err);
+        console.warn('long-drift | Failed equipping item to body slot', err);
       }
     });
     html.on("input", ".skill-rank, .skill-ip", ev => {
@@ -1321,8 +1566,42 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const loc = ev.currentTarget.dataset?.loc; if (!loc) return;
     try {
       await this.actor.update({ [`system.body.locations.${loc}.itemId`]: null });
+      this._refreshBodyItemIcons();
       this.render(false);
     } catch (e) { console.error('long-drift | Failed unequip', e); }
+  }
+
+  async _onRemoveDeleteBodyItem(ev) {
+    ev.preventDefault();
+    const loc = ev.currentTarget.dataset?.loc;
+    const itemId = ev.currentTarget.dataset?.itemId;
+    if (!loc || !itemId) return;
+
+    const item = this.actor.items.get(itemId);
+    if (!item) {
+      await this.actor.update({ [`system.body.locations.${loc}.itemId`]: null });
+      this._refreshBodyItemIcons();
+      this.render(false);
+      return;
+    }
+
+    const confirmed = await Dialog.confirm({
+      title: 'Remove and Delete Cyberware',
+      content: `<p>Remove <strong>${item.name}</strong> from this location and delete it from the actor inventory?</p>`,
+      yes: () => true,
+      no: () => false
+    });
+    if (!confirmed) return;
+
+    try {
+      await this.actor.update({ [`system.body.locations.${loc}.itemId`]: null });
+      await this.actor.deleteEmbeddedDocuments('Item', [itemId]);
+      this._refreshBodyItemIcons();
+      this.render(false);
+    } catch (e) {
+      console.error('long-drift | Failed remove+delete cyberware', e);
+      ui.notifications.error('Failed to remove and delete cyberware.');
+    }
   }
 
 
@@ -1824,21 +2103,10 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     ev.preventDefault();
 
     try {
-      await this.actor.createEmbeddedDocuments('Item', [{
-        name: "New Weapon",
-        type: "weapon",
-        system: {
-          name: "New Weapon",
-          wa: 0,
-          range: "",
-          weaponType: "Pistol",
-          damage: "",
-          rof: 1,
-          shots: 0,
-          skill: "",
-          isMecha: false
-        }
-      }]);
+      const selectedType = await this._promptWeaponTypeChoice("Pistol");
+      const template = await this._promptWeaponTemplateChoice(selectedType);
+      const createData = this.constructor._weaponDocFromTemplate(template, selectedType);
+      await this.actor.createEmbeddedDocuments('Item', [createData]);
       this.render(false);
     } catch (err) {
       console.error('long-drift | Failed to create weapon', err);
@@ -1896,7 +2164,45 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
 
     if (field === 'weaponType') {
-      this._updateWeaponDvDisplay(row, val || 'Pistol');
+      const previousType = String(item.system?.weaponType || 'Pistol');
+      const selectedType = String(val || 'Pistol');
+
+      let template = null;
+      try {
+        template = await this._promptWeaponTemplateChoice(selectedType, item.name);
+      } catch (err) {
+        console.warn('long-drift | Weapon template choice cancelled/failed', err);
+      }
+
+      if (!template) {
+        // Revert select if selection flow was cancelled.
+        input.value = previousType;
+        this._updateWeaponDvDisplay(row, previousType);
+        return;
+      }
+
+      this._updateWeaponDvDisplay(row, selectedType);
+      const defaults = this.constructor._weaponDocFromTemplate(template, selectedType);
+      const updateData = {
+        name: defaults.name,
+        img: defaults.img,
+        'system.weaponType': defaults.system.weaponType,
+        'system.damage': defaults.system.damage,
+        'system.rof': defaults.system.rof,
+        'system.shots': defaults.system.shots,
+        'system.quality': defaults.system.quality,
+        'system.skill': defaults.system.skill,
+        'system.note': defaults.system.note,
+        'system.isMecha': defaults.system.isMecha
+      };
+
+      try {
+        await item.update(updateData);
+      } catch (err) {
+        console.error('long-drift | Failed to apply weapon type defaults', err);
+        ui.notifications.error('Failed to apply weapon type defaults');
+      }
+      return;
     }
 
     const updateData = field === 'name'
@@ -1955,6 +2261,9 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const mode = String(button.dataset.mode || "single");
     const skillName = mode === "autofire" ? "Autofire (x2)" : weapon.system?.skill;
     const wa = MektonActorSheet._num(weapon.system?.wa, 0);
+    const qualityRaw = String(weapon.system?.quality || "Standard");
+    const quality = ["Poor", "Standard", "Excellent"].includes(qualityRaw) ? qualityRaw : "Standard";
+    const qualityBonus = quality === "Excellent" ? 1 : 0;
 
     // Find the corresponding skill in the actor's items
     let skillTotal = 0;
@@ -1969,8 +2278,9 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       }
     }
 
-    const total = skillTotal + wa;
+    const total = skillTotal + wa + qualityBonus;
     const { roll, total: baseTotal, plusDice, minusDice, capped, maxExtra } = await this.constructor._rollBidirectionalExplodingD10();
+    const isPoorJam = quality === "Poor" && Number(plusDice?.[0] || 0) === 1;
 
     const rollTotal = baseTotal + total;
     
@@ -1984,8 +2294,27 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
     const weaponName = weapon.name;
     const modeLabel = mode === "autofire" ? "Autofire" : "Attack";
-    const flavor = `<strong>${this.actor.name}</strong> rolls ${weaponName} [${modeLabel}]${tag}${capTag} = (${plusStr}${minusStr}) + Skill ${skillTotal} + WA ${wa} = <strong style="font-size: 1.2em; color: #4a90e2;">${rollTotal}</strong>`;
+    const qualityDisplay = qualityBonus ? `+${qualityBonus}` : "+0";
+    const jamText = isPoorJam
+      ? `<p style="margin:0.35rem 0 0 0;color:#b30000;font-weight:700;">Poor Weapon Jam: clear jam with an Action.</p>`
+      : "";
+    const flavor = `
+      <div class="long-drift weapon-roll-card">
+        <div><strong>${this.actor.name}</strong> rolls <strong>${weaponName}</strong> [${modeLabel}]${tag}${capTag}</div>
+        <div style="margin-top:0.35rem;">
+          <div>Exploding d10: (${plusStr}${minusStr}) = <strong>${baseTotal}</strong></div>
+          <div>Skill (${skillName || "Unlinked"}): <strong>${skillTotal}</strong></div>
+          <div>WA: <strong>${wa}</strong></div>
+          <div>Quality (${quality}): <strong>${qualityDisplay}</strong></div>
+        </div>
+        <div style="margin-top:0.35rem;">Final Total: <strong style="font-size: 1.2em; color: #4a90e2;">${rollTotal}</strong></div>
+        ${jamText}
+      </div>
+    `;
     
     await roll.toMessage({ speaker, flavor });
+    if (isPoorJam) {
+      ui.notifications.warn(`${weaponName} jammed (Poor Quality).`);
+    }
   }
 }
