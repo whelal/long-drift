@@ -176,11 +176,33 @@ export class ActorDataModel extends foundry.abstract.DataModel {
         const stats = this.stats ?? {};
         const substats = this.substats ?? {};
 
-        const body = Number(stats?.BODY?.value ?? 0) || 0;
-        const emp = Number(stats?.EMP?.value ?? 0) || 0;
+        const readStatValue = (...keys) => {
+            for (const key of keys) {
+                if (!key) continue;
+                const statEntry = stats?.[key];
+                if (statEntry === null || statEntry === undefined) continue;
 
-        const hpMax = 10 + (5 * Math.ceil(body / 2));
+                const candidate = (typeof statEntry === "object" && statEntry !== null)
+                    ? statEntry.value
+                    : statEntry;
+                const num = Number(candidate);
+                if (Number.isFinite(num)) return num;
+            }
+            return 0;
+        };
+
+        const body = readStatValue("BODY", "body");
+        const emp = readStatValue("EMP", "emp");
+        const will = readStatValue("WILL", "will");
+
+        const hpMax = 10 + (5 * Math.ceil(body / 2)) + (5 * Math.ceil(will / 2));
         const humanityMax = emp * 10;
+        const humanityCurrentRaw = (substats.humanity === 0 && substats.humanityMax === 0)
+            ? humanityMax
+            : Number(substats.humanity ?? humanityMax);
+        const humanityCurrent = Number.isFinite(humanityCurrentRaw)
+            ? Math.max(0, Math.min(Math.trunc(humanityCurrentRaw), humanityMax))
+            : humanityMax;
 
         const hpCurrentRaw = (substats.hp_current === 0 && substats.hp === 0)
             ? hpMax
@@ -206,6 +228,7 @@ export class ActorDataModel extends foundry.abstract.DataModel {
 
         substats.hp = hpMax;
         substats.hp_current = hpCurrent;
+        substats.humanity = humanityCurrent;
         substats.humanityMax = humanityMax;
         substats.death = body;
         substats.woundState = woundState;

@@ -483,9 +483,50 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
       for (const stat of statKeys) {
         normalizeIntField(
           `system.stats.${stat}.value`,
-          Number(this.actor.system?.stats?.[stat]?.value ?? 0)
+          Number(this.actor.system?.stats?.[stat]?.value ?? STAT_DEFAULT_VALUES[stat] ?? 0)
         );
       }
+
+      // Keep key derived vitals in sync even when DataModel derivation is delayed/skipped.
+      const bodyVal = Number(formData["system.stats.BODY.value"] ?? this.actor.system?.stats?.BODY?.value ?? STAT_DEFAULT_VALUES.BODY);
+      const empVal = Number(formData["system.stats.EMP.value"] ?? this.actor.system?.stats?.EMP?.value ?? STAT_DEFAULT_VALUES.EMP);
+      const willVal = Number(formData["system.stats.WILL.value"] ?? this.actor.system?.stats?.WILL?.value ?? STAT_DEFAULT_VALUES.WILL);
+      const body = Number.isFinite(bodyVal) ? bodyVal : STAT_DEFAULT_VALUES.BODY;
+      const emp = Number.isFinite(empVal) ? empVal : STAT_DEFAULT_VALUES.EMP;
+      const will = Number.isFinite(willVal) ? willVal : STAT_DEFAULT_VALUES.WILL;
+
+      const hpMax = 10 + (5 * Math.ceil(body / 2)) + (5 * Math.ceil(will / 2));
+      const humanityMax = emp * 10;
+      formData["system.substats.hp"] = hpMax;
+      formData["system.substats.humanityMax"] = humanityMax;
+      formData["system.substats.death"] = body;
+
+      // Clamp current pools to their derived max values.
+      const hpCurrent = Number(formData["system.substats.hp_current"]);
+      const humanityCurrent = Number(formData["system.substats.humanity"]);
+      formData["system.substats.hp_current"] = Number.isFinite(hpCurrent)
+        ? Math.max(0, Math.min(Math.trunc(hpCurrent), hpMax))
+        : hpMax;
+      formData["system.substats.humanity"] = Number.isFinite(humanityCurrent)
+        ? Math.max(0, Math.min(Math.trunc(humanityCurrent), humanityMax))
+        : humanityMax;
+
+      // Update wound state text from the same derived values to avoid stale labels.
+      const seriousThreshold = Math.ceil(hpMax / 2);
+      let woundState = "Healthy";
+      let woundStateSubtitle = "No penalties";
+      if (formData["system.substats.hp_current"] <= 0) {
+        woundState = "Mortally Wounded";
+        woundStateSubtitle = "-4 all Actions / -6 MOVE / Death Save each Turn";
+      } else if (formData["system.substats.hp_current"] < seriousThreshold) {
+        woundState = "Seriously Wounded";
+        woundStateSubtitle = "-2 all Actions / Stabilization DV13";
+      } else if (formData["system.substats.hp_current"] < hpMax) {
+        woundState = "Lightly Wounded";
+        woundStateSubtitle = "Stabilization DV10";
+      }
+      formData["system.substats.woundState"] = woundState;
+      formData["system.substats.woundStateSubtitle"] = woundStateSubtitle;
     } catch (e) {
       console.warn('long-drift | Failed to normalize substats before update', e);
     }
@@ -579,6 +620,52 @@ export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
     ctx.actor = this.actor;
 
     ctx.system = this.actor.system ?? {};
+    ctx.system.stats = applyStatDefaults(ctx.system.stats ?? {});
+    ctx.system.substats ??= {};
+
+    // Fallback derivation for fresh/legacy actors when DataModel-derived values are still zero.
+    const bodyStat = this.constructor._num(
+      ctx.system.stats?.BODY?.value ?? ctx.system.stats?.BODY,
+      STAT_DEFAULT_VALUES.BODY
+    );
+    const empStat = this.constructor._num(
+      ctx.system.stats?.EMP?.value ?? ctx.system.stats?.EMP,
+      STAT_DEFAULT_VALUES.EMP
+    );
+    const willStat = this.constructor._num(
+      ctx.system.stats?.WILL?.value ?? ctx.system.stats?.WILL,
+      STAT_DEFAULT_VALUES.WILL
+    );
+    const derivedHpMax = 10 + (5 * Math.ceil(bodyStat / 2)) + (5 * Math.ceil(willStat / 2));
+    const derivedHumanityMax = empStat * 10;
+
+    // Snapshot current values before overwriting max fields, since ctx.system is a live reference.
+    const snapHp = this.constructor._num(ctx.system.substats.hp, 0);
+    const snapHpCurrent = this.constructor._num(ctx.system.substats.hp_current, 0);
+    const snapHumanityMax = this.constructor._num(ctx.system.substats.humanityMax, 0);
+    const snapHumanity = this.constructor._num(ctx.system.substats.humanity, 0);
+
+    // Max values are always derived from stats. Unconditionally override whatever prepareDerivedData
+    // or stored data has, so the sheet reflects the correct caps even if the DataModel lifecycle
+    // did not call prepareDerivedData() (e.g. DataModel vs TypeDataModel base class difference).
+    ctx.system.substats.hp = derivedHpMax;
+    ctx.system.substats.humanityMax = derivedHumanityMax;
+    ctx.system.substats.death = bodyStat;
+
+    // Current values: initialize to max for fresh actors (both snapped 0 = schema default, never set).
+    // For used actors clamp to the new max to handle stat-change edge cases.
+    if (snapHp === 0 && snapHpCurrent === 0) {
+      ctx.system.substats.hp_current = derivedHpMax;
+    } else {
+      ctx.system.substats.hp_current = Math.max(0, Math.min(snapHpCurrent, derivedHpMax));
+    }
+
+    if (snapHumanityMax === 0 && snapHumanity === 0) {
+      ctx.system.substats.humanity = derivedHumanityMax;
+    } else {
+      ctx.system.substats.humanity = Math.max(0, Math.min(snapHumanity, derivedHumanityMax));
+    }
+
     ctx.items = this.actor.items ?? [];
     ctx.editable = this.isEditable;
 
