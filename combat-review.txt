@@ -1,4 +1,4 @@
-{{!-- Combat tab partial --}}
+﻿{{!-- Combat tab partial --}}
 <div class="tab combat" data-tab="combat">
   <style>
     .tab.combat .combat-section { margin-bottom: 8px; }
@@ -59,10 +59,6 @@
     .tab.combat .weapon-dv-panel { border-top: 1px dashed #c9c9c9; padding-top: 4px; }
     .tab.combat .weapon-dv-grid { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.66rem; color: #666; }
     .tab.combat .weapon-autofire-inline { color: #666; font-weight: 600; }
-    .tab.combat .crit-injury-list { border: 1px solid #bbb; border-top: none; background: #f7f7f7; padding: 6px; display: grid; gap: 6px; }
-    .tab.combat .crit-injury-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; border: 1px solid #d6d6d6; background: #fff; padding: 6px; }
-    .tab.combat .crit-injury-healed-wrap { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #555; }
-    .tab.combat .crit-injury-add-wrap { padding: 4px 8px; border: 1px solid #bbb; border-top: none; text-align: center; background: #f5f5f5; }
   </style>
 
   <div class="combat-container">
@@ -71,18 +67,7 @@
       {{#if hasSkillItems}}
         <div class="combat-skills-list">
           {{#each skillGroups as |group|}}
-            {{#if (eq group.category 'Ranged Weapon')}}
-              {{#each group.skills as |sk|}}
-                <div class="combat-skill-row" data-skill-id="{{sk.id}}">
-                  <span class="skill-label">{{sk.name}} {{#if (and sk.hard (not sk.hasHardMarker))}}<span class="hard-flag" title="Hard Skill">(H)</span>{{/if}}</span>
-                  <span class="skill-total-display">+ {{sk.total}}</span>
-                  <div class="skill-roll-cell">
-                    <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
-                  </div>
-                </div>
-              {{/each}}
-            {{/if}}
-            {{#if (eq group.category 'Fighting')}}
+            {{#if (eq group.category 'REF:COMBAT')}}
               {{#each group.skills as |sk|}}
                 <div class="combat-skill-row" data-skill-id="{{sk.id}}">
                   <span class="skill-label">{{sk.name}} {{#if (and sk.hard (not sk.hasHardMarker))}}<span class="hard-flag" title="Hard Skill">(H)</span>{{/if}}</span>
@@ -186,50 +171,6 @@
       </div>
       <div style="padding: 4px 8px; border: 1px solid #bbb; border-top: none; text-align: center; background: #f5f5f5;">
         <button type="button" class="create-weapon-item" style="font-size: 0.75rem; padding: 2px 8px;"><i class="fas fa-plus"></i> Add Weapon</button>
-      </div>
-
-      <div class="combat-section-header" style="margin-top: 12px;">ARMOR</div>
-      <div style="border: 1px solid #bbb; border-top: none; background: #f7f7f7; padding: 6px; display: grid; gap: 6px;">
-        <div style="display:grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 8px; align-items:center; border: 1px solid #d6d6d6; background:#fff; padding: 6px;">
-          <div><strong>Head</strong></div>
-          <div style="display:flex; align-items:center; gap: 6px;">
-            <label style="font-size:0.72rem; font-weight:700;">SP</label>
-            <input type="number" name="system.armor.head.sp" min="0" step="1" value="{{system.armor.head.sp}}" style="width: 4.5rem; text-align:center;" />
-            <span style="font-size:0.75rem;">/ {{system.armor.head.spMax}}</span>
-          </div>
-          <div style="font-size:0.75rem;"><strong>Penalty:</strong> {{system.armor.head.penalty}}</div>
-        </div>
-
-        <div style="display:grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 8px; align-items:center; border: 1px solid #d6d6d6; background:#fff; padding: 6px;">
-          <div><strong>Body</strong></div>
-          <div style="display:flex; align-items:center; gap: 6px;">
-            <label style="font-size:0.72rem; font-weight:700;">SP</label>
-            <input type="number" name="system.armor.body.sp" min="0" step="1" value="{{system.armor.body.sp}}" style="width: 4.5rem; text-align:center;" />
-            <span style="font-size:0.75rem;">/ {{system.armor.body.spMax}}</span>
-          </div>
-          <div style="font-size:0.75rem;"><strong>Penalty:</strong> {{system.armor.body.penalty}}</div>
-        </div>
-      </div>
-
-      <div class="combat-section-header" style="margin-top: 12px;">CRITICAL INJURIES</div>
-      <div class="crit-injury-list">
-        {{#if criticalInjuries.length}}
-          {{#each criticalInjuries as |injury|}}
-            <div class="crit-injury-row" data-injury-index="{{injury.index}}">
-              <input type="text" class="crit-injury-name" value="{{injury.name}}" placeholder="Injury name" />
-              <label class="crit-injury-healed-wrap">
-                <input type="checkbox" class="crit-injury-healed" {{#if injury.healed}}checked{{/if}} />
-                Healed
-              </label>
-              <button type="button" class="crit-injury-delete" title="Delete Critical Injury"><i class="fas fa-trash"></i></button>
-            </div>
-          {{/each}}
-        {{else}}
-          <p class="mf-empty" style="margin: 0;">No critical injuries recorded.</p>
-        {{/if}}
-      </div>
-      <div class="crit-injury-add-wrap">
-        <button type="button" class="crit-injury-add" style="font-size: 0.75rem; padding: 2px 8px;"><i class="fas fa-plus"></i> Add Critical Injury</button>
       </div>
     </div>
 

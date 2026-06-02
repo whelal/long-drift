@@ -1,5 +1,5 @@
-// module/script/sheets/long-drift.js
-import { LongDriftActorSheet } from "./actor-sheet.js";
+﻿// module/script/sheets/long-drift.js
+import { MektonActorSheet } from "./actor-sheet.js";
 import { MektonFusionItemSheet } from "../../module/sheets/item-sheet.js";
 import { ActorDataModel } from "../../module/data/actor-data-model.js";
 import { WeaponDataModel, SkillDataModel, ArmorDataModel, CyberwareDataModel } from "../../module/data/item-data-model.js";
@@ -192,11 +192,6 @@ Hooks.once("init", () => {
       return a === b;
     });
     console.log('long-drift | Handlebars helper "eq" registered');
-
-    Handlebars.registerHelper('or', function(...args) {
-      return args.slice(0, -1).some(Boolean);
-    });
-    console.log('long-drift | Handlebars helper "or" registered');
   } catch (e) {
     console.warn('long-drift | Failed to register Handlebars helpers', e);
   }
@@ -206,8 +201,7 @@ Hooks.once("init", () => {
     "systems/long-drift/templates/actor/tabs/stats.hbs",
     "systems/long-drift/templates/actor/tabs/skills.hbs",
     "systems/long-drift/templates/actor/tabs/equipment.hbs",
-    "systems/long-drift/templates/actor/tabs/notes.hbs",
-    "systems/long-drift/templates/actor/npc-sheet.hbs"
+    "systems/long-drift/templates/actor/tabs/notes.hbs"
   ]).then(() => console.log('long-drift | Actor tab partials preloaded'));
 
   // Homebrew settings (display-only flags to indicate free, not-for-sale status)
@@ -257,7 +251,7 @@ Hooks.once("init", () => {
   DSC.unregisterSheet(Actor, "core", foundry.appv1.sheets.ActorSheet);
 
   // Register our actor sheet
-  DSC.registerSheet(Actor, "long-drift", LongDriftActorSheet, {
+  DSC.registerSheet(Actor, "long-drift", MektonActorSheet, {
     types: ["character", "npc", "vehicle"], // must match system.json actor types
     makeDefault: true,
     label: "Long Drift Actor Sheet"
@@ -318,7 +312,7 @@ Hooks.on("updateActor", (actor, changes, options, userId) => {
   }
 
   Object.values(ui.windows).forEach(app => {
-    if (app.constructor.name === "LongDriftActorSheet" && app.rendered && app.actor) {
+    if (app.constructor.name === "MektonActorSheet" && app.rendered && app.actor) {
       if (likelySameActorInstance(app.actor, actor)) {
         sheetsToUpdate.push({ app, reason: 'likely match' });
       }
@@ -369,7 +363,7 @@ Hooks.on("updateToken", (tokenDocument, changes, options, userId) => {
     if (baseActor) {
       // Force re-render of all actor sheets for the base actor
       Object.values(ui.windows).forEach(app => {
-        if (app.constructor.name === "LongDriftActorSheet" && app.rendered) {
+        if (app.constructor.name === "MektonActorSheet" && app.rendered) {
           if (app.actor?.id === baseActor.id || (app.actor?.isToken && app.actor.token?.baseActor?.id === baseActor.id)) {
             console.log("long-drift | Re-rendering actor sheet from token update for:", app.actor.name);
             app.render(false);
@@ -386,7 +380,7 @@ Hooks.on("updateToken", (tokenDocument, changes, options, userId) => {
     
     // Force re-render of all open actor sheets for this actor
     Object.values(ui.windows).forEach(app => {
-      if (app.constructor.name === "LongDriftActorSheet" && app.actor?.id === actor.id && app.rendered) {
+      if (app.constructor.name === "MektonActorSheet" && app.actor?.id === actor.id && app.rendered) {
         console.log("long-drift | Re-rendering linked actor sheet from token update for:", actor.name);
         app.render(false);
       }
@@ -407,7 +401,7 @@ Hooks.on("createItem", (item, options, userId) => {
     console.log("long-drift | Checking", allWindows.length, "windows for related actors");
     
     allWindows.forEach(app => {
-      if (app.constructor.name === "LongDriftActorSheet" && app.rendered && app.actor) {
+      if (app.constructor.name === "MektonActorSheet" && app.rendered && app.actor) {
         console.log("long-drift | Checking app actor:", app.actor.name, "ID:", app.actor.id, "isToken:", app.actor.isToken);
         
         // For linked tokens, both will have the same ID but different isToken status
@@ -431,7 +425,7 @@ Hooks.on("updateItem", (item, changes, options, userId) => {
     
     // Find other actor sheets for the same actor (different sheet instances)
     Object.values(ui.windows).forEach(app => {
-      if (app.constructor.name === "LongDriftActorSheet" && 
+      if (app.constructor.name === "MektonActorSheet" && 
           app.rendered && 
           app.actor && 
           app.actor.id === sourceActor.id && 
@@ -455,7 +449,7 @@ Hooks.on("deleteItem", (item, options, userId) => {
     
     // Find other actor sheets for the same actor (different sheet instances)
     Object.values(ui.windows).forEach(app => {
-      if (app.constructor.name === "LongDriftActorSheet" && 
+      if (app.constructor.name === "MektonActorSheet" && 
           app.rendered && 
           app.actor && 
           app.actor.id === sourceActor.id && 
@@ -471,7 +465,7 @@ Hooks.on("deleteItem", (item, options, userId) => {
 
 // Force synchronization on any actor sheet render
 Hooks.on("renderActorSheet", (app, html, data) => {
-  if (app.constructor.name === "LongDriftActorSheet") {
+  if (app.constructor.name === "MektonActorSheet") {
     console.log("long-drift | Actor sheet rendered for:", app.actor.name);
     console.log("long-drift | Is token actor:", app.actor.isToken);
     console.log("long-drift | Actor ID:", app.actor.id);
@@ -484,7 +478,7 @@ Hooks.on("updateTokenActor", (tokenActor, changes, options, userId) => {
   
   // This is for unlinked token actors - force refresh of related sheets
   Object.values(ui.windows).forEach(app => {
-    if (app.constructor.name === "LongDriftActorSheet" && app.actor?.id === tokenActor.id && app.rendered) {
+    if (app.constructor.name === "MektonActorSheet" && app.actor?.id === tokenActor.id && app.rendered) {
       console.log("long-drift | Re-rendering token actor sheet for:", tokenActor.name);
       app.render(false);
     }
@@ -523,7 +517,7 @@ Hooks.once("ready", async () => {
         
         try {
           // Use our exploding d10 system
-          const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await LongDriftActorSheet._rollBidirectionalExplodingD10();
+          const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await MektonActorSheet._rollBidirectionalExplodingD10();
           
           // Get REF and initiative modifier
           const refVal = actor.system?.stats?.REF?.value ?? 0;
@@ -579,7 +573,7 @@ Hooks.once("ready", async () => {
 
       try {
         // Use our exploding d10 system
-        const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await LongDriftActorSheet._rollBidirectionalExplodingD10();
+        const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await MektonActorSheet._rollBidirectionalExplodingD10();
         
         // Get REF and initiative modifier
         const refVal = actor.system?.stats?.REF?.value ?? 0;

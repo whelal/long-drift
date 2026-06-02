@@ -1,4 +1,4 @@
-export class ActorDataModel extends foundry.abstract.DataModel {
+﻿export class ActorDataModel extends foundry.abstract.DataModel {
     static defineSchema() {
         const fields = foundry.data.fields;
     return {
@@ -22,10 +22,6 @@ export class ActorDataModel extends foundry.abstract.DataModel {
                     notes: new fields.StringField({ initial: "" })
                 }), { initial: [] })
             }),
-            vehicles: new fields.ArrayField(new fields.SchemaField({
-                name: new fields.StringField({ initial: "" }),
-                notes: new fields.StringField({ initial: "" })
-            }), { initial: [] }),
             // Player profile / appearance & personal hooks
             profile: new fields.SchemaField({
                 hairColor: new fields.StringField({ initial: "" }),
@@ -71,72 +67,98 @@ export class ActorDataModel extends foundry.abstract.DataModel {
                 woundState: new fields.StringField({initial: "Healthy"}),
                 woundStateSubtitle: new fields.StringField({initial: "No penalties"})
             }),
-            armor: new fields.SchemaField({
-                head: new fields.SchemaField({
-                    sp: new fields.NumberField({ initial: 0, min: 0, integer: true }),
-                    spMax: new fields.NumberField({ initial: 0, min: 0, integer: true }),
-                    penalty: new fields.NumberField({ initial: 0, integer: true }),
-                    itemId: new fields.StringField({ initial: "" })
-                }),
-                body: new fields.SchemaField({
-                    sp: new fields.NumberField({ initial: 0, min: 0, integer: true }),
-                    spMax: new fields.NumberField({ initial: 0, min: 0, integer: true }),
-                    penalty: new fields.NumberField({ initial: 0, integer: true }),
-                    itemId: new fields.StringField({ initial: "" })
-                })
-            }),
             /* Body model for paperdoll locations */
             body: new fields.SchemaField({
                 locations: new fields.SchemaField({
                     head: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Head" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     torso: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Torso" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 12, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 12, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     rArm: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Right Arm" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     lArm: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Left Arm" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     rLeg: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Right Leg" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     lLeg: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Left Leg" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     rHand: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Right Hand" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     lHand: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Left Hand" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     rFoot: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Right Foot" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     }),
                     lFoot: new fields.SchemaField({
                         label: new fields.StringField({ initial: "Left Foot" }),
-                        itemId: new fields.StringField({ initial: "" }),
-                        notes: new fields.StringField({ initial: "" })
+                            sp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
                     })
                 }),
                 notes: new fields.StringField({ initial: "" })
@@ -145,8 +167,6 @@ export class ActorDataModel extends foundry.abstract.DataModel {
                 gear: new fields.StringField({ initial: "" }),
                 totalWeight: new fields.NumberField({ initial: 0, min: 0 })
             }),
-            // NPC rank field (Mook / Lieutenant / Boss)
-            rank: new fields.StringField({ initial: "Mook" }),
             // Player notes field
             notes: new fields.StringField({ initial: "" })
         };
@@ -156,33 +176,11 @@ export class ActorDataModel extends foundry.abstract.DataModel {
         const stats = this.stats ?? {};
         const substats = this.substats ?? {};
 
-        const readStatValue = (...keys) => {
-            for (const key of keys) {
-                if (!key) continue;
-                const statEntry = stats?.[key];
-                if (statEntry === null || statEntry === undefined) continue;
+        const body = Number(stats?.BODY?.value ?? 0) || 0;
+        const emp = Number(stats?.EMP?.value ?? 0) || 0;
 
-                const candidate = (typeof statEntry === "object" && statEntry !== null)
-                    ? statEntry.value
-                    : statEntry;
-                const num = Number(candidate);
-                if (Number.isFinite(num)) return num;
-            }
-            return 0;
-        };
-
-        const body = readStatValue("BODY", "body");
-        const emp = readStatValue("EMP", "emp");
-        const will = readStatValue("WILL", "will");
-
-        const hpMax = 10 + (5 * Math.ceil((body + will) / 2));
+        const hpMax = 10 + (5 * Math.ceil(body / 2));
         const humanityMax = emp * 10;
-        const humanityCurrentRaw = (substats.humanity === 0 && substats.humanityMax === 0)
-            ? humanityMax
-            : Number(substats.humanity ?? humanityMax);
-        const humanityCurrent = Number.isFinite(humanityCurrentRaw)
-            ? Math.max(0, Math.min(Math.trunc(humanityCurrentRaw), humanityMax))
-            : humanityMax;
 
         const hpCurrentRaw = (substats.hp_current === 0 && substats.hp === 0)
             ? hpMax
@@ -208,7 +206,6 @@ export class ActorDataModel extends foundry.abstract.DataModel {
 
         substats.hp = hpMax;
         substats.hp_current = hpCurrent;
-        substats.humanity = humanityCurrent;
         substats.humanityMax = humanityMax;
         substats.death = body;
         substats.woundState = woundState;

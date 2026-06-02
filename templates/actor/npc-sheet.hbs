@@ -1,0 +1,131 @@
+<form class="{{cssClass}} red-shell" autocomplete="off">
+  <aside class="red-sidebar">
+    <div class="red-portrait-wrap">
+      <img class="profile red-portrait" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" alt="{{actor.name}}" />
+    </div>
+
+    <div class="red-name-card">
+      <input class="red-name-input auto-fit-input" name="name" type="text" value="{{actor.name}}" placeholder="Name" data-fit-min="12"/>
+      <select name="system.rank" class="npc-rank-select" style="width:100%;margin-top:4px;font-size:0.85rem;">
+        <option value="Mook" {{#if (eq system.rank "Mook")}}selected{{/if}}>Mook</option>
+        <option value="Lieutenant" {{#if (eq system.rank "Lieutenant")}}selected{{/if}}>Lieutenant</option>
+        <option value="Boss" {{#if (eq system.rank "Boss")}}selected{{/if}}>Boss</option>
+      </select>
+    </div>
+
+    <div class="npc-stat-block" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:4px 0 6px;">
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">INT</label>
+        <input type="number" name="system.stats.INT.value" value="{{system.stats.INT.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">REF</label>
+        <input type="number" name="system.stats.REF.value" value="{{system.stats.REF.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">DEX</label>
+        <input type="number" name="system.stats.DEX.value" value="{{system.stats.DEX.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">TECH</label>
+        <input type="number" name="system.stats.TECH.value" value="{{system.stats.TECH.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">COOL</label>
+        <input type="number" name="system.stats.COOL.value" value="{{system.stats.COOL.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">WILL</label>
+        <input type="number" name="system.stats.WILL.value" value="{{system.stats.WILL.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">LUCK</label>
+        <input type="number" name="system.stats.LUCK.value" value="{{system.stats.LUCK.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">MOVE</label>
+        <input type="number" name="system.stats.MOVE.value" value="{{system.stats.MOVE.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">BODY</label>
+        <input type="number" name="system.stats.BODY.value" value="{{system.stats.BODY.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+      <div class="npc-stat-cell" style="display:grid;gap:2px;text-align:center;">
+        <label style="font-size:0.6rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:0.02em;">EMP</label>
+        <input type="number" name="system.stats.EMP.value" value="{{system.stats.EMP.value}}" min="0" step="1" style="width:100%;min-width:0;padding:1px 3px;font-size:0.75rem;line-height:1.1;text-align:center;box-sizing:border-box;" />
+      </div>
+    </div>
+
+    <div class="red-vitals-grid">
+      <div class="red-vital">
+        <span class="label">Hit Points</span>
+        <span class="value">
+          <input class="value-input auto-fit-input" name="system.substats.hp_current" type="number" min="0" step="1" value="{{system.substats.hp_current}}" data-fit-min="10"/>
+          / {{system.substats.hp}}
+        </span>
+      </div>
+      <div class="red-vital red-vital-wound {{woundStateClass}}">
+        <span class="label">Wound State</span>
+        <span class="value">{{system.substats.woundState}}</span>
+        <span class="value" style="display:block;font-size:0.72em;line-height:1.2;opacity:0.9;">{{system.substats.woundStateSubtitle}}</span>
+      </div>
+      <div class="red-vital">
+        <span class="label">Death Save</span>
+        <span class="value">{{system.substats.death}}</span>
+      </div>
+    </div>
+  </aside>
+
+  <section class="red-main">
+    <nav class="sheet-tabs tabs red-tabs">
+      <a class="item" data-tab="combat">Combat</a>
+      <a class="item" data-tab="skills">Skills</a>
+      <a class="item" data-tab="notes">Notes</a>
+    </nav>
+
+    <section class="sheet-body red-body">
+
+      {{{_tabCombatHtml}}}
+
+      <div class="tab skills" data-tab="skills">
+        {{#each skillGroups as |group|}}
+          {{#if (or (eq group.category "Fighting") (eq group.category "Ranged Weapon"))}}
+            <section class="skill-group-block" data-category="{{group.category}}">
+              <header class="skill-group-head">
+                <span class="group-spacer"></span>
+                <span class="group-title">{{group.category}}</span>
+                <span class="group-col-label group-col-rank">LVL</span>
+                <span class="group-col-label group-col-total">Base</span>
+                <span class="group-spacer"></span>
+              </header>
+              <div class="group-body">
+                {{#each group.skills as |sk|}}
+                  <div data-skill-id="{{sk.id}}" class="skill-item-row skill-row-compact" data-favorite="{{sk.favorite}}" data-category="{{group.category}}" role="row">
+                    <a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a>
+                    <div class="skill-name-wrap">
+                      <span class="skill-stat-chip">{{sk.stat}}</span>
+                      <span class="skill-name">{{sk.name}}</span>
+                    </div>
+                    <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
+                    <span class="skill-total">{{sk.total}}</span>
+                    <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
+                  </div>
+                {{/each}}
+              </div>
+            </section>
+          {{/if}}
+        {{/each}}
+        {{#unless skillGroups}}
+          <p class="mf-empty">No skills found. Use the character sheet to seed skills first.</p>
+        {{/unless}}
+      </div>
+
+      <div class="tab notes" data-tab="notes">
+        <div class="tab-content-pad" style="padding:8px;">
+          <textarea name="system.notes" style="width:100%;min-height:300px;resize:vertical;font-family:inherit;font-size:0.875rem;padding:6px;box-sizing:border-box;">{{system.notes}}</textarea>
+        </div>
+      </div>
+
+    </section>
+  </section>
+</form>

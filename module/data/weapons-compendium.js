@@ -89,6 +89,26 @@ export const CPR_WEAPONS_COMPENDIUM = [
       note: "Melee damage ignores half SP (round up). Cannot attack twice in one Action."
     }
   },
+  {
+    name: "Wolvers",
+    type: "weapon",
+    img: "icons/svg/claw.svg",
+    system: {
+      description: "Retractable forearm blades. Requires Wolvers cyberware installed.",
+      weaponType: "Melee",
+      skill: "Melee Weapon",
+      damage: "2d6",
+      rof: 2,
+      shots: 0,
+      wa: 0,
+      concealable: false,
+      hands: 0,
+      cost: 0,
+      isMecha: false,
+      pen: 0,
+      note: "Cyberware weapon. Melee damage ignores half SP."
+    }
+  },
 
   // ── PISTOLS ────────────────────────────────────────────────────────────
   {

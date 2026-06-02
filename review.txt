@@ -1,3 +1,298 @@
+﻿export class ActorDataModel extends foundry.abstract.DataModel {
+    static defineSchema() {
+        const fields = foundry.data.fields;
+    return {
+            meta: new fields.SchemaField({
+                role: new fields.StringField({initial: ""}),
+                age: new fields.NumberField({initial: 25, min: 0, integer: true}),
+                points: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                reputation: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                eurobucks: new fields.NumberField({initial: 500, min: 0, integer: true})
+            }),
+            role: new fields.SchemaField({
+                name: new fields.StringField({ initial: "" }),
+                ability: new fields.StringField({ initial: "" }),
+                rank: new fields.NumberField({ initial: 4, min: 0, max: 10, integer: true }),
+                notes: new fields.StringField({ initial: "" })
+            }),
+            criticalInjuries: new fields.SchemaField({
+                entries: new fields.ArrayField(new fields.SchemaField({
+                    name: new fields.StringField({ initial: "" }),
+                    healed: new fields.BooleanField({ initial: false }),
+                    notes: new fields.StringField({ initial: "" })
+                }), { initial: [] })
+            }),
+            // Player profile / appearance & personal hooks
+            profile: new fields.SchemaField({
+                hairColor: new fields.StringField({ initial: "" }),
+                hairStyle: new fields.StringField({ initial: "" }),
+                eyeColor: new fields.StringField({ initial: "" }),
+                height: new fields.StringField({ initial: "" }),
+                weight: new fields.StringField({ initial: "" }),
+                sex: new fields.StringField({ initial: "" }),
+                personalityTraits: new fields.StringField({ initial: "" }),
+                valueMost: new fields.StringField({ initial: "" }),
+                valuedPossession: new fields.StringField({ initial: "" }),
+                personValueMost: new fields.StringField({ initial: "" })
+            }),
+            stats: new fields.SchemaField({
+                INT: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                REF: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                DEX: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                TECH: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                COOL: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                WILL: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                LUCK: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                MOVE: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                BODY: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) }),
+                EMP: new fields.SchemaField({ value: new fields.NumberField({initial: 5, min: 0, integer: true}) })
+            }),
+            // Unified substats container (replaces runtime seeding in sheet logic)
+            substats: new fields.SchemaField({
+                stun: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                death: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                bodyTypeMod: new fields.NumberField({initial: 0, integer: true}),
+                lift: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                carry: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                run: new fields.NumberField({initial: 0, min: 0, integer: false}),
+                leap: new fields.NumberField({initial: 0, min: 0, integer: false}),
+                swim: new fields.NumberField({initial: 0, min: 0, integer: false}),
+                hp: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                hp_current: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                initiative: new fields.NumberField({initial: 0, integer: true}), // removed min: 0 to allow negative modifiers
+                dodge: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                enc: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                humanity: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                humanityMax: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                woundState: new fields.StringField({initial: "Healthy"}),
+                woundStateSubtitle: new fields.StringField({initial: "No penalties"})
+            }),
+            /* Body model for paperdoll locations */
+            body: new fields.SchemaField({
+                locations: new fields.SchemaField({
+                    head: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Head" }),
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    torso: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Torso" }),
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 12, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 12, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    rArm: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Right Arm" }),
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    lArm: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Left Arm" }),
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    rLeg: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Right Leg" }),
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    lLeg: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Left Leg" }),
+                            sp: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 9, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    rHand: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Right Hand" }),
+                            sp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    lHand: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Left Hand" }),
+                            sp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    rFoot: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Right Foot" }),
+                            sp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    }),
+                    lFoot: new fields.SchemaField({
+                        label: new fields.StringField({ initial: "Left Foot" }),
+                            sp: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                            spMax: new fields.NumberField({ initial: 6, min: 0, integer: true }),
+                        hp: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        hpMax: new fields.NumberField({ initial: 5, min: 0, integer: true }),
+                        ablates: new fields.BooleanField({ initial: true }),
+                        itemId: new fields.StringField({ initial: "" })
+                    })
+                }),
+                notes: new fields.StringField({ initial: "" })
+            }),
+            equipment: new fields.SchemaField({
+                gear: new fields.StringField({ initial: "" }),
+                totalWeight: new fields.NumberField({ initial: 0, min: 0 })
+            }),
+            // Player notes field
+            notes: new fields.StringField({ initial: "" })
+        };
+    }
+
+    prepareDerivedData() {
+        const stats = this.stats ?? {};
+        const substats = this.substats ?? {};
+
+        const body = Number(stats?.BODY?.value ?? 0) || 0;
+        const emp = Number(stats?.EMP?.value ?? 0) || 0;
+
+        const hpMax = 10 + (5 * Math.ceil(body / 2));
+        const humanityMax = emp * 10;
+
+        const hpCurrentRaw = (substats.hp_current === 0 && substats.hp === 0)
+            ? hpMax
+            : Number(substats.hp_current ?? hpMax);
+        const hpCurrent = Number.isFinite(hpCurrentRaw)
+            ? Math.max(0, Math.min(Math.trunc(hpCurrentRaw), hpMax))
+            : hpMax;
+
+        const seriousThreshold = Math.ceil(hpMax / 2);
+        let woundState = "Healthy";
+        let woundStateSubtitle = "No penalties";
+
+        if (hpCurrent <= 0) {
+            woundState = "Mortally Wounded";
+            woundStateSubtitle = "-4 all Actions / -6 MOVE / Death Save each Turn";
+        } else if (hpCurrent < seriousThreshold) {
+            woundState = "Seriously Wounded";
+            woundStateSubtitle = "-2 all Actions / Stabilization DV13";
+        } else if (hpCurrent < hpMax) {
+            woundState = "Lightly Wounded";
+            woundStateSubtitle = "Stabilization DV10";
+        }
+
+        substats.hp = hpMax;
+        substats.hp_current = hpCurrent;
+        substats.humanityMax = humanityMax;
+        substats.death = body;
+        substats.woundState = woundState;
+        substats.woundStateSubtitle = woundStateSubtitle;
+    }
+}
+export class ItemDataModel extends foundry.abstract.DataModel {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    return {
+      // Shared fields for all item types
+      description: new fields.StringField({ initial: "" }),
+      sort: new fields.NumberField({ initial: 0, integer: true })
+    };
+  }
+}
+
+// Schema for weapon items
+export class WeaponDataModel extends ItemDataModel {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    const parentSchema = super.defineSchema();
+    return foundry.utils.mergeObject(parentSchema, {
+      name: new fields.StringField({ initial: "" }),
+      wa: new fields.NumberField({ initial: 0, integer: true }),
+      range: new fields.StringField({ initial: "" }),
+      weaponType: new fields.StringField({ initial: "Pistol" }),
+      damage: new fields.StringField({ initial: "" }),
+      rof: new fields.NumberField({ initial: 1, integer: true, min: 1 }),
+      shots: new fields.NumberField({ initial: 0, integer: true }),
+      concealable: new fields.BooleanField({ initial: false }),
+      hands: new fields.NumberField({ initial: 2, integer: true, min: 1 }),
+      cost: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      autofire: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      pen: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      quality: new fields.StringField({ initial: "Standard" }),
+      skill: new fields.StringField({ initial: "" }),
+      note: new fields.StringField({ initial: "" }),
+      isMecha: new fields.BooleanField({ initial: false })
+    });
+  }
+}
+
+// Schema for skill items
+export class SkillDataModel extends ItemDataModel {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    const parentSchema = super.defineSchema();
+    return foundry.utils.mergeObject(parentSchema, {
+      stat: new fields.StringField({ initial: "INT" }),
+      category: new fields.StringField({ initial: "" }),
+      rank: new fields.NumberField({ initial: 0, integer: true }),
+      favorite: new fields.BooleanField({ initial: false }),
+      ip: new fields.NumberField({ initial: 0, integer: true }),
+      hard: new fields.BooleanField({ initial: false }),
+      custom: new fields.BooleanField({ initial: false })
+    });
+  }
+}
+
+// Schema for armor items
+export class ArmorDataModel extends ItemDataModel {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    const parentSchema = super.defineSchema();
+    return foundry.utils.mergeObject(parentSchema, {
+      armorValue: new fields.NumberField({ initial: 0, integer: true })
+    });
+  }
+}
+
+// Schema for cyberware items
+export class CyberwareDataModel extends ItemDataModel {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    const parentSchema = super.defineSchema();
+    return foundry.utils.mergeObject(parentSchema, {
+      slot: new fields.StringField({ initial: "torso" }),
+      spaces: new fields.NumberField({ initial: 1, integer: true, min: 0 }),
+      humanityLoss: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      cost: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      armor: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      integrity: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      note: new fields.StringField({ initial: "" })
+    });
+  }
+}
 // module/script/sheets/actor-sheet.js
 import { STAT_DEFAULT_VALUES, applyStatDefaults } from "../../module/data/defaults.js";
 import { LONG_DRIFT_CORE_SKILLS } from "../../module/data/skills.js";
@@ -7,7 +302,7 @@ import { CPR_WEAPONS_COMPENDIUM } from "../../module/data/weapons-compendium.js"
 const normalizeSkillName = (name) => String(name || "").trim().toLowerCase();
 const CPR_CORE_SKILL_NAMES = new Set(LONG_DRIFT_CORE_SKILLS.map(skill => normalizeSkillName(skill.name)));
 
-export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
+export class MektonActorSheet extends foundry.appv1.sheets.ActorSheet {
   static _getWeaponTemplatesForType(weaponType) {
     const type = String(weaponType || "").trim();
     if (!type) return [];
@@ -215,11 +510,6 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     this._autoFitObserver = null;
     this._autoFitRAF = null;
   }
-  get template() {
-    if (this.actor?.type === "npc") return "systems/long-drift/templates/actor/npc-sheet.hbs";
-    return "systems/long-drift/templates/actor/actor-sheet.hbs";
-  }
-
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       classes: ["long-drift", "sheet", "actor"],
@@ -230,7 +520,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       submitOnChange: true,
       submitOnClose: true,
       closeOnSubmit: false,
-      scrollY: [".tab.stats", ".tab.combat", ".tab.skills", ".tab.equipment", ".tab.notes", ".tab.vehicle"]
+      scrollY: [".tab.stats", ".tab.combat", ".tab.skills", ".tab.equipment", ".tab.notes"]
     });
   }
 
@@ -488,50 +778,9 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       for (const stat of statKeys) {
         normalizeIntField(
           `system.stats.${stat}.value`,
-          Number(this.actor.system?.stats?.[stat]?.value ?? STAT_DEFAULT_VALUES[stat] ?? 0)
+          Number(this.actor.system?.stats?.[stat]?.value ?? 0)
         );
       }
-
-      // Keep key derived vitals in sync even when DataModel derivation is delayed/skipped.
-      const bodyVal = Number(formData["system.stats.BODY.value"] ?? this.actor.system?.stats?.BODY?.value ?? STAT_DEFAULT_VALUES.BODY);
-      const empVal = Number(formData["system.stats.EMP.value"] ?? this.actor.system?.stats?.EMP?.value ?? STAT_DEFAULT_VALUES.EMP);
-      const willVal = Number(formData["system.stats.WILL.value"] ?? this.actor.system?.stats?.WILL?.value ?? STAT_DEFAULT_VALUES.WILL);
-      const body = Number.isFinite(bodyVal) ? bodyVal : STAT_DEFAULT_VALUES.BODY;
-      const emp = Number.isFinite(empVal) ? empVal : STAT_DEFAULT_VALUES.EMP;
-      const will = Number.isFinite(willVal) ? willVal : STAT_DEFAULT_VALUES.WILL;
-
-      const hpMax = 10 + (5 * Math.ceil(body / 2)) + (5 * Math.ceil(will / 2));
-      const humanityMax = emp * 10;
-      formData["system.substats.hp"] = hpMax;
-      formData["system.substats.humanityMax"] = humanityMax;
-      formData["system.substats.death"] = body;
-
-      // Clamp current pools to their derived max values.
-      const hpCurrent = Number(formData["system.substats.hp_current"]);
-      const humanityCurrent = Number(formData["system.substats.humanity"]);
-      formData["system.substats.hp_current"] = Number.isFinite(hpCurrent)
-        ? Math.max(0, Math.min(Math.trunc(hpCurrent), hpMax))
-        : hpMax;
-      formData["system.substats.humanity"] = Number.isFinite(humanityCurrent)
-        ? Math.max(0, Math.min(Math.trunc(humanityCurrent), humanityMax))
-        : humanityMax;
-
-      // Update wound state text from the same derived values to avoid stale labels.
-      const seriousThreshold = Math.ceil(hpMax / 2);
-      let woundState = "Healthy";
-      let woundStateSubtitle = "No penalties";
-      if (formData["system.substats.hp_current"] <= 0) {
-        woundState = "Mortally Wounded";
-        woundStateSubtitle = "-4 all Actions / -6 MOVE / Death Save each Turn";
-      } else if (formData["system.substats.hp_current"] < seriousThreshold) {
-        woundState = "Seriously Wounded";
-        woundStateSubtitle = "-2 all Actions / Stabilization DV13";
-      } else if (formData["system.substats.hp_current"] < hpMax) {
-        woundState = "Lightly Wounded";
-        woundStateSubtitle = "Stabilization DV10";
-      }
-      formData["system.substats.woundState"] = woundState;
-      formData["system.substats.woundStateSubtitle"] = woundStateSubtitle;
     } catch (e) {
       console.warn('long-drift | Failed to normalize substats before update', e);
     }
@@ -573,7 +822,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
 
       // Find other sheets that likely represent the same actor data and manually update them
       Object.values(ui.windows).forEach(app => {
-        if (app.constructor.name === "LongDriftActorSheet" && app.rendered && app !== this && app.actor) {
+        if (app.constructor.name === "MektonActorSheet" && app.rendered && app !== this && app.actor) {
           if (likelySameActorInstance(app.actor, this.actor)) {
             console.log("long-drift | Manually syncing unlinked actor (heuristic):", app.actor.name);
             // Only sync to other unlinked tokens or to the base actor (not to linked token sheets)
@@ -607,7 +856,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     // Force refresh of all related sheets
     console.log("long-drift | Forcing refresh of all related sheets");
     Object.values(ui.windows).forEach(app => {
-      if (app.constructor.name === "LongDriftActorSheet" && 
+      if (app.constructor.name === "MektonActorSheet" && 
           app.rendered && 
           app !== this &&
           (app.actor?.id === this.actor.id || 
@@ -625,52 +874,6 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     ctx.actor = this.actor;
 
     ctx.system = this.actor.system ?? {};
-    ctx.system.stats = applyStatDefaults(ctx.system.stats ?? {});
-    ctx.system.substats ??= {};
-
-    // Fallback derivation for fresh/legacy actors when DataModel-derived values are still zero.
-    const bodyStat = this.constructor._num(
-      ctx.system.stats?.BODY?.value ?? ctx.system.stats?.BODY,
-      STAT_DEFAULT_VALUES.BODY
-    );
-    const empStat = this.constructor._num(
-      ctx.system.stats?.EMP?.value ?? ctx.system.stats?.EMP,
-      STAT_DEFAULT_VALUES.EMP
-    );
-    const willStat = this.constructor._num(
-      ctx.system.stats?.WILL?.value ?? ctx.system.stats?.WILL,
-      STAT_DEFAULT_VALUES.WILL
-    );
-    const derivedHpMax = 10 + (5 * Math.ceil(bodyStat / 2)) + (5 * Math.ceil(willStat / 2));
-    const derivedHumanityMax = empStat * 10;
-
-    // Snapshot current values before overwriting max fields, since ctx.system is a live reference.
-    const snapHp = this.constructor._num(ctx.system.substats.hp, 0);
-    const snapHpCurrent = this.constructor._num(ctx.system.substats.hp_current, 0);
-    const snapHumanityMax = this.constructor._num(ctx.system.substats.humanityMax, 0);
-    const snapHumanity = this.constructor._num(ctx.system.substats.humanity, 0);
-
-    // Max values are always derived from stats. Unconditionally override whatever prepareDerivedData
-    // or stored data has, so the sheet reflects the correct caps even if the DataModel lifecycle
-    // did not call prepareDerivedData() (e.g. DataModel vs TypeDataModel base class difference).
-    ctx.system.substats.hp = derivedHpMax;
-    ctx.system.substats.humanityMax = derivedHumanityMax;
-    ctx.system.substats.death = bodyStat;
-
-    // Current values: initialize to max for fresh actors (both snapped 0 = schema default, never set).
-    // For used actors clamp to the new max to handle stat-change edge cases.
-    if (snapHp === 0 && snapHpCurrent === 0) {
-      ctx.system.substats.hp_current = derivedHpMax;
-    } else {
-      ctx.system.substats.hp_current = Math.max(0, Math.min(snapHpCurrent, derivedHpMax));
-    }
-
-    if (snapHumanityMax === 0 && snapHumanity === 0) {
-      ctx.system.substats.humanity = derivedHumanityMax;
-    } else {
-      ctx.system.substats.humanity = Math.max(0, Math.min(snapHumanity, derivedHumanityMax));
-    }
-
     ctx.items = this.actor.items ?? [];
     ctx.editable = this.isEditable;
 
@@ -747,16 +950,16 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       console.log('long-drift | Initializing body locations for', this.actor.name);
       const defaultBody = {
         locations: {
-          head:   { label: "Head", itemId: "", notes: "" },
-          torso:  { label: "Torso", itemId: "", notes: "" },
-          rArm:   { label: "Right Arm", itemId: "", notes: "" },
-          lArm:   { label: "Left Arm", itemId: "", notes: "" },
-          rHand:  { label: "Right Hand", itemId: "", notes: "" },
-          lHand:  { label: "Left Hand", itemId: "", notes: "" },
-          rLeg:   { label: "Right Leg", itemId: "", notes: "" },
-          lLeg:   { label: "Left Leg", itemId: "", notes: "" },
-          rFoot:  { label: "Right Foot", itemId: "", notes: "" },
-          lFoot:  { label: "Left Foot", itemId: "", notes: "" }
+          head:   { label: "Head",   sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+          torso:  { label: "Torso",  sp: 10, spMax: 10, hp: 10, hpMax: 10, mektonHp: 10, mektonHpMax: 10, ablates: true, itemId: null },
+          rArm:   { label: "Right Arm", sp: 5, spMax: 5, hp: 5, hpMax: 5, mektonHp: 5, mektonHpMax: 5, ablates: true, itemId: null },
+          lArm:   { label: "Left Arm",  sp: 5, spMax: 5, hp: 5, hpMax: 5, mektonHp: 5, mektonHpMax: 5, ablates: true, itemId: null },
+          rHand:  { label: "Right Hand", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+          lHand:  { label: "Left Hand",  sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+          rLeg:   { label: "Right Leg", sp: 6, spMax: 6, hp: 6, hpMax: 6, mektonHp: 6, mektonHpMax: 6, ablates: true, itemId: null },
+          lLeg:   { label: "Left Leg",  sp: 6, spMax: 6, hp: 6, hpMax: 6, mektonHp: 6, mektonHpMax: 6, ablates: true, itemId: null },
+          rFoot:  { label: "Right Foot", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+          lFoot:  { label: "Left Foot",  sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null }
         },
         notes: ""
       };
@@ -771,10 +974,10 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     } else {
       console.log('long-drift | Body locations found:', this.actor.system.body.locations);
       const requiredBodyLocations = {
-        rHand: { label: "Right Hand", itemId: "", notes: "" },
-        lHand: { label: "Left Hand", itemId: "", notes: "" },
-        rFoot: { label: "Right Foot", itemId: "", notes: "" },
-        lFoot: { label: "Left Foot", itemId: "", notes: "" }
+        rHand: { label: "Right Hand", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+        lHand: { label: "Left Hand", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+        rFoot: { label: "Right Foot", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null },
+        lFoot: { label: "Left Foot", sp: 4, spMax: 4, hp: 4, hpMax: 4, mektonHp: 4, mektonHpMax: 4, ablates: true, itemId: null }
       };
       const patch = {};
       const currentLocations = this.actor.system?.body?.locations || {};
@@ -840,8 +1043,8 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       // Ensure values are numeric after update
       const maxRaw = foundry.utils.getProperty(ctx.system, `substats.${maxKey}`);
       const curRaw = foundry.utils.getProperty(ctx.system, `substats.${curKey}`);
-      const max = LongDriftActorSheet._num(maxRaw, 0);
-      const cur = LongDriftActorSheet._num(curRaw, max);
+      const max = MektonActorSheet._num(maxRaw, 0);
+      const cur = MektonActorSheet._num(curRaw, max);
       const percent = max > 0 ? Math.round((Number(cur) / Number(max)) * 100) : 0;
       return { max, current: cur, percent };
     };
@@ -872,13 +1075,6 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       index,
       name: String(entry?.name || ''),
       healed: !!entry?.healed,
-      notes: String(entry?.notes || '')
-    }));
-    ctx.system.vehicles ??= [];
-    const vehicleEntries = Array.isArray(ctx.system.vehicles) ? ctx.system.vehicles : [];
-    ctx.vehicles = vehicleEntries.map((entry, index) => ({
-      index,
-      name: String(entry?.name || ''),
       notes: String(entry?.notes || '')
     }));
 
@@ -925,11 +1121,11 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     // Build skill Items listing (preferred representation)
     let needsPsiFix = false;
       // Use class-level collator cache for efficiency
-      if (!LongDriftActorSheet._collator || LongDriftActorSheet._collatorLang !== (game.i18n.lang || 'en')) {
-        LongDriftActorSheet._collator = new Intl.Collator(game.i18n.lang || 'en', { sensitivity: 'base' });
-        LongDriftActorSheet._collatorLang = game.i18n.lang || 'en';
+      if (!MektonActorSheet._collator || MektonActorSheet._collatorLang !== (game.i18n.lang || 'en')) {
+        MektonActorSheet._collator = new Intl.Collator(game.i18n.lang || 'en', { sensitivity: 'base' });
+        MektonActorSheet._collatorLang = game.i18n.lang || 'en';
       }
-      const collator = LongDriftActorSheet._collator;
+      const collator = MektonActorSheet._collator;
     let flatSkills = this.actor.items
       .filter(i => i.type === "skill")
       .map(it => {
@@ -1043,7 +1239,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     if (vsSkills.favOnly) nonPsi = nonPsi.filter(sk => sk.favorite);
 
     // Keep skills in persistent manual order, with name as a stable fallback.
-    nonPsi.sort((a, b) => LongDriftActorSheet.bySortThenName(a, b, collator));
+    nonPsi.sort((a, b) => MektonActorSheet.bySortThenName(a, b, collator));
 
   // Extract custom (non-PSI) skills so they can render in their own section at the bottom.
   // We do this AFTER sorting so customSkills preserve the active sort order.
@@ -1095,24 +1291,6 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     ctx.skillGroupsLeft = skillGroupsLeft;
     ctx.skillGroupsRight = skillGroupsRight;
     ctx.customSkills = customSkills || [];
-    const vehicleControlSkillOrder = [
-      'drive land vehicle',
-      'pilot air vehicle',
-      'pilot sea vehicle',
-      'riding'
-    ];
-    const vehicleControlSkillSet = new Set(vehicleControlSkillOrder);
-    const controlSkillsByName = new Map();
-    for (const sk of flatSkills) {
-      const normalized = normalizeSkillName(sk.name);
-      if (!vehicleControlSkillSet.has(normalized)) continue;
-      if (!controlSkillsByName.has(normalized)) {
-        controlSkillsByName.set(normalized, sk);
-      }
-    }
-    ctx.vehicleControlSkills = vehicleControlSkillOrder
-      .map((name) => controlSkillsByName.get(name))
-      .filter(Boolean);
   ctx.skillItems = flatSkills; // full flat list (pre-tab filtering, for potential use)
     // Render the skills table if either grouped non-PSI skills or custom skills exist.
     // This avoids hiding rollable custom skills when the non-PSI grouped list is empty.
@@ -1128,7 +1306,6 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       ctx._tabSkillsHtml = await renderTemplate("systems/long-drift/templates/actor/tabs/skills.hbs", ctx);
       ctx._tabEquipmentHtml = await renderTemplate("systems/long-drift/templates/actor/tabs/equipment.hbs", ctx);
       ctx._tabNotesHtml = await renderTemplate("systems/long-drift/templates/actor/tabs/notes.hbs", ctx);
-        ctx._tabVehicleHtml = await renderTemplate("systems/long-drift/templates/actor/tabs/vehicle.hbs", ctx);
   // Optional paperdoll/body tab (empty by default until filled)
   console.log('long-drift | Before rendering body tab:', {
     hasSystemBody: !!ctx.system?.body,
@@ -1144,7 +1321,6 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       ctx._tabSkillsHtml = ctx._tabSkillsHtml || '';
       ctx._tabEquipmentHtml = ctx._tabEquipmentHtml || '';
       ctx._tabNotesHtml = ctx._tabNotesHtml || '';
-      ctx._tabVehicleHtml = ctx._tabVehicleHtml || '';
   ctx._tabBodyHtml = ctx._tabBodyHtml || '';
     }
 
@@ -1201,10 +1377,6 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
   html.on("change", ".crit-injury-name", ev => this._onChangeCriticalInjuryField(ev));
   html.on("change", ".crit-injury-healed", ev => this._onChangeCriticalInjuryField(ev));
   html.on("change", ".crit-injury-notes", ev => this._onChangeCriticalInjuryField(ev));
-  html.on("click", ".vehicle-add", ev => this._onAddVehicle(ev));
-  html.on("click", ".vehicle-delete", ev => this._onDeleteVehicle(ev));
-  html.on("change", ".vehicle-name", ev => this._onChangeVehicleField(ev));
-  html.on("change", ".vehicle-notes", ev => this._onChangeVehicleField(ev));
   html.on("click", ".link-token-button", ev => this._onLinkTokenClick(ev));
   html.on("click", ".unlink-token-button", ev => this._onUnlinkTokenClick(ev));
   html.on("input change", ".auto-fit-input", ev => this._fitInputFontSize(ev.currentTarget));
@@ -1419,9 +1591,29 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       }
       if (!item) return;
 
+      // Pull armor/integrity style values from either armor or cyberware schema.
+      const spVal = MektonActorSheet._num(
+        item.system?.sp ?? item.system?.armorValue ?? item.system?.armor,
+        0
+      );
+      const integrityVal = MektonActorSheet._num(
+        item.system?.mektonHp ?? item.system?.integrity,
+        0
+      );
       const path = `system.body.locations.${loc}`;
       try {
-        await this.actor.update({ [`${path}.itemId`]: item.id });
+        const updateData = {
+          [`${path}.itemId`]: item.id,
+          [`${path}.sp`]: spVal,
+          [`${path}.spMax`]: Math.max(spVal, foundry.utils.getProperty(this.actor, `${path}.spMax`) ?? spVal)
+        };
+
+        if (integrityVal > 0) {
+          updateData[`${path}.mektonHp`] = integrityVal;
+          updateData[`${path}.mektonHpMax`] = Math.max(integrityVal, foundry.utils.getProperty(this.actor, `${path}.mektonHpMax`) ?? integrityVal);
+        }
+
+        await this.actor.update(updateData);
         // Refresh icons after equip
         this._refreshBodyItemIcons();
       } catch (err) {
@@ -1555,7 +1747,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
               ui.notifications.info("Token linked to actor. Reopening sheets to refresh.");
               // Force re-render of open sheets for this actor
               Object.values(ui.windows).forEach(app => {
-                if (app.constructor.name === "LongDriftActorSheet" && app.actor?.id === this.actor.id) app.render(false);
+                if (app.constructor.name === "MektonActorSheet" && app.actor?.id === this.actor.id) app.render(false);
               });
             } catch (err) {
               console.error('long-drift | Failed to link token to actor', err);
@@ -1607,7 +1799,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
               await found.document.update({ actorLink: false });
               ui.notifications.info("Token unlinked from actor. Reopening sheets to refresh.");
               Object.values(ui.windows).forEach(app => {
-                if (app.constructor.name === "LongDriftActorSheet" && app.actor?.id === this.actor.id) app.render(false);
+                if (app.constructor.name === "MektonActorSheet" && app.actor?.id === this.actor.id) app.render(false);
               });
             } catch (err) {
               console.error('long-drift | Failed to unlink token from actor', err);
@@ -1630,7 +1822,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     ev.preventDefault();
     const loc = ev.currentTarget.dataset?.loc; if (!loc) return;
     try {
-      const cur = LongDriftActorSheet._num(this.actor.system?.body?.locations?.[loc]?.sp ?? 0, 0);
+      const cur = MektonActorSheet._num(this.actor.system?.body?.locations?.[loc]?.sp ?? 0, 0);
       await this.actor.update({ [`system.body.locations.${loc}.sp`]: Math.max(0, cur - 1) });
       this.render(false);
     } catch (e) { console.error('long-drift | Failed ablate', e); }
@@ -1640,8 +1832,8 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     ev.preventDefault();
     const loc = ev.currentTarget.dataset?.loc; if (!loc) return;
     try {
-      const cur = LongDriftActorSheet._num(this.actor.system?.body?.locations?.[loc]?.hp ?? 0, 0);
-      const max = LongDriftActorSheet._num(this.actor.system?.body?.locations?.[loc]?.hpMax ?? 0, 0);
+      const cur = MektonActorSheet._num(this.actor.system?.body?.locations?.[loc]?.hp ?? 0, 0);
+      const max = MektonActorSheet._num(this.actor.system?.body?.locations?.[loc]?.hpMax ?? 0, 0);
       await this.actor.update({ [`system.body.locations.${loc}.hp`]: Math.min(max, cur + amt) });
       this.render(false);
     } catch (e) { console.error('long-drift | Failed heal', e); }
@@ -1651,7 +1843,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     ev.preventDefault();
     const loc = ev.currentTarget.dataset?.loc; if (!loc) return;
     try {
-      const cur = LongDriftActorSheet._num(this.actor.system?.body?.locations?.[loc]?.hp ?? 0, 0);
+      const cur = MektonActorSheet._num(this.actor.system?.body?.locations?.[loc]?.hp ?? 0, 0);
       await this.actor.update({ [`system.body.locations.${loc}.hp`]: Math.max(0, cur - amt) });
       this.render(false);
     } catch (e) { console.error('long-drift | Failed damage', e); }
@@ -1715,7 +1907,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     const card = btn.closest('.substat-card'); if (!card) return;
     const key = card.dataset.subkey;
     const input = card.querySelector('.substat-input'); if (!input) return;
-    const cur = LongDriftActorSheet._num(input.value, 0);
+    const cur = MektonActorSheet._num(input.value, 0);
     const next = Math.max(0, cur + delta);
     input.value = next;
     try { await this.actor.update({ [`system.substats.${key}`]: next }); }
@@ -1834,7 +2026,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     if (!match) return;
     const li = input.closest("[data-skill-id]"); if (!li) return;
     const skill = this.actor.items.get(li.dataset.skillId); if (!skill) return;
-    const val = LongDriftActorSheet._num(input.value, 0);
+    const val = MektonActorSheet._num(input.value, 0);
     await skill.update({ "system.ip": val });
   }
 
@@ -1850,7 +2042,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     const input = ev.currentTarget;
     const li = input.closest("[data-skill-id]"); if (!li) return;
     const skill = this.actor.items.get(li.dataset.skillId); if (!skill) return;
-    const val = LongDriftActorSheet._num(input.value, 0);
+    const val = MektonActorSheet._num(input.value, 0);
     await skill.update({ "system.rank": val });
     
     // Update the total display without full re-render
@@ -1987,8 +2179,25 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
 
   async _onAddCriticalInjury(ev) {
     ev.preventDefault();
+    let name = '';
+    try {
+      const result = await Dialog.prompt({
+        title: 'Add Critical Injury',
+        content: `
+          <p>Injury Name</p>
+          <input type="text" name="injuryName" value="" style="width:100%;" placeholder="Broken Arm, Collapsed Lung..."/>
+        `,
+        label: 'Add',
+        callback: html => String(html.find("[name='injuryName']").val() || '').trim()
+      });
+      name = String(result || '').trim();
+    } catch (_) {
+      return;
+    }
+    if (!name) return;
+
     const entries = this._getCriticalInjuries();
-    entries.push({ name: '', healed: false, notes: '' });
+    entries.push({ name, healed: false, notes: '' });
     await this.actor.update({ 'system.criticalInjuries.entries': entries });
     this.render(false);
   }
@@ -2029,60 +2238,6 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
 
     await this.actor.update({ 'system.criticalInjuries.entries': entries });
-  }
-
-  _getVehicles() {
-    const list = this.actor.system?.vehicles;
-    return Array.isArray(list)
-      ? list.map((entry) => ({
-        name: String(entry?.name || ''),
-        notes: String(entry?.notes || '')
-      }))
-      : [];
-  }
-
-  async _onAddVehicle(ev) {
-    ev.preventDefault();
-    const vehicles = this._getVehicles();
-    vehicles.push({ name: '', notes: '' });
-    await this.actor.update({ 'system.vehicles': vehicles });
-    this.render(false);
-  }
-
-  async _onDeleteVehicle(ev) {
-    ev.preventDefault();
-    const row = ev.currentTarget.closest('[data-vehicle-index]');
-    if (!row) return;
-    const index = Number(row.dataset.vehicleIndex);
-    if (!Number.isInteger(index) || index < 0) return;
-
-    const vehicles = this._getVehicles();
-    if (index >= vehicles.length) return;
-    vehicles.splice(index, 1);
-    await this.actor.update({ 'system.vehicles': vehicles });
-    this.render(false);
-  }
-
-  async _onChangeVehicleField(ev) {
-    const input = ev.currentTarget;
-    const row = input.closest('[data-vehicle-index]');
-    if (!row) return;
-    const index = Number(row.dataset.vehicleIndex);
-    if (!Number.isInteger(index) || index < 0) return;
-
-    const vehicles = this._getVehicles();
-    const current = vehicles[index];
-    if (!current) return;
-
-    if (input.classList.contains('vehicle-name')) {
-      current.name = String(input.value || '');
-    } else if (input.classList.contains('vehicle-notes')) {
-      current.notes = String(input.value || '');
-    } else {
-      return;
-    }
-
-    await this.actor.update({ 'system.vehicles': vehicles });
   }
 
 
@@ -2174,7 +2329,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     if (!skill) return;
     
     const stat = this.constructor.normalizeStatKey(skill.system?.stat || "INT");
-    const rank = LongDriftActorSheet._num(skill.system?.rank, 0);
+    const rank = MektonActorSheet._num(skill.system?.rank, 0);
     const statLabel = stat;
     const statSource = this.actor.system?.stats?.[stat];
     const statVal = typeof statSource === 'object' && statSource !== null ? Number(statSource.value) || 0 : Number(statSource) || 0;
@@ -2299,7 +2454,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     
     // Parse numbers for numeric fields
     if (['wa', 'shots', 'rof'].includes(field)) {
-      val = LongDriftActorSheet._num(val, 0);
+      val = MektonActorSheet._num(val, 0);
       if (field === 'rof') val = Math.max(1, val);
     }
 
@@ -2400,7 +2555,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     const mode = String(button.dataset.mode || "single");
     const skillName = mode === "autofire" ? "Autofire (x2)" : weapon.system?.skill;
-    const wa = LongDriftActorSheet._num(weapon.system?.wa, 0);
+    const wa = MektonActorSheet._num(weapon.system?.wa, 0);
     const qualityRaw = String(weapon.system?.quality || "Standard");
     const quality = ["Poor", "Standard", "Excellent"].includes(qualityRaw) ? qualityRaw : "Standard";
     const qualityBonus = quality === "Excellent" ? 1 : 0;
@@ -2413,7 +2568,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       if (skill) {
         const statKey = this.constructor.normalizeStatKey(skill.system?.stat || "INT");
         const statVal = this.actor.system?.stats?.[statKey]?.value ?? 0;
-        const rank = LongDriftActorSheet._num(skill.system?.rank, 0);
+        const rank = MektonActorSheet._num(skill.system?.rank, 0);
         skillTotal = statVal + rank;
       }
     }
@@ -2458,3 +2613,288 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
   }
 }
+{{!-- Combat tab partial --}}
+<div class="tab combat" data-tab="combat">
+  <style>
+    .tab.combat .combat-section { margin-bottom: 8px; }
+    .tab.combat .combat-section-header { background: #000; color: #fff; padding: 4px 8px; font-weight: 700; font-size: 0.85rem; margin-bottom: 0; text-transform: uppercase; }
+    .tab.combat .combat-skills-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #bbb; border-top: none; }
+    .tab.combat .combat-skill-row { display: flex; align-items: center; padding: 4px 8px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; gap: 6px; }
+    .tab.combat .combat-skill-row:nth-child(odd) { border-right: 1px solid #ddd; }
+    .tab.combat .combat-skill-row:nth-child(even) { border-right: none; }
+    .tab.combat .combat-skill-row:nth-last-child(-n+2) { border-bottom: none; }
+    .tab.combat .skill-label { flex: 1; font-weight: 500; font-size: 0.8rem; }
+    .tab.combat .skill-total-display { min-width: 55px; text-align: center; font-size: 0.75rem; color: #333; font-weight: 500; }
+    .tab.combat .skill-roll-cell { width: 28px; text-align: center; }
+    .tab.combat .skill-roll-cell button { padding: 1px 4px; font-size: 0.8rem; }
+    .tab.combat .weapons-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 2px; }
+    .tab.combat .weapons-table tbody tr { border-bottom: 1px solid #ddd; }
+    .tab.combat .weapons-table td { padding: 3px 8px; vertical-align: middle; }
+    .tab.combat .weapons-table td:last-child { width: 28px; text-align: center; }
+    .tab.combat .weapon-type-cell { display: flex; align-items: center; gap: 4px; }
+    .tab.combat .weapon-type-cell select { flex: 1; min-width: 0; }
+    .tab.combat .weapon-range-info { width: 20px; height: 20px; padding: 0; font-size: 0.72rem; line-height: 1; }
+    .tab.combat .weapon-cards { display: grid; gap: 6px; border: 1px solid #bbb; border-top: none; padding: 6px; background: #f7f7f7; }
+    .tab.combat details.weapon-card { border: 1px solid #b8b8b8; background: #fff; border-radius: 4px; }
+    .tab.combat details.weapon-card summary { list-style: none; cursor: pointer; padding: 4px 6px; }
+    .tab.combat details.weapon-card summary::-webkit-details-marker { display: none; }
+    .tab.combat .weapon-summary-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .tab.combat .weapon-expand-icon { font-size: 0.75rem; color: #444; width: 12px; text-align: center; flex-shrink: 0; }
+    .tab.combat details.weapon-card[open] .weapon-expand-icon { transform: rotate(90deg); display: inline-block; }
+    .tab.combat .weapon-name-input {
+      flex: 0 0 20ch;
+      width: 20ch;
+      min-width: 12ch;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tab.combat .weapon-type-select { width: 20ch; flex: 0 0 20ch; }
+    .tab.combat .weapon-quality-select { width: 12ch; flex: 0 0 12ch; }
+    .tab.combat .weapon-skill-select { width: 16ch; flex: 0 0 16ch; }
+    .tab.combat .weapon-damage-input { width: 74px; flex: 0 0 74px; }
+    .tab.combat .weapon-scale-pill { font-size: 0.62rem; font-weight: 700; border: 1px solid #555; border-radius: 10px; padding: 1px 6px; white-space: nowrap; }
+    .tab.combat .weapon-scale-pill.mech { background: #222; color: #fff; border-color: #111; }
+    .tab.combat .weapon-scale-pill.personal { background: #ececec; color: #333; }
+    .tab.combat .weapon-attack-modes { display: flex; gap: 4px; margin-left: auto; }
+    .tab.combat .weapon-summary-line .weapon-field,
+    .tab.combat .weapon-mode-btn,
+    .tab.combat .weapon-icon-btn {
+      height: 26px;
+      font-size: 0.72rem;
+      padding: 0 6px;
+      line-height: 1;
+    }
+    .tab.combat .weapon-mode-btn { min-width: 30px; }
+    .tab.combat .weapon-icon-btn { width: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+    .tab.combat .weapon-card-body { border-top: 1px solid #ddd; padding: 6px; display: grid; gap: 8px; }
+    .tab.combat .weapon-detail-grid { display: grid; grid-template-columns: 64px 64px 70px 106px 160px 1fr 90px; gap: 6px; align-items: end; }
+    .tab.combat .weapon-detail { display: grid; gap: 2px; }
+    .tab.combat .weapon-detail label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: #555; }
+    .tab.combat .weapon-dv-panel { border-top: 1px dashed #c9c9c9; padding-top: 4px; }
+    .tab.combat .weapon-dv-grid { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.66rem; color: #666; }
+    .tab.combat .weapon-autofire-inline { color: #666; font-weight: 600; }
+  </style>
+
+  <div class="combat-container">
+    <div class="combat-section human-combat">
+      <div class="combat-section-header">HUMAN COMBAT SKILLS</div>
+      {{#if hasSkillItems}}
+        <div class="combat-skills-list">
+          {{#each skillGroups as |group|}}
+            {{#if (eq group.category 'REF:COMBAT')}}
+              {{#each group.skills as |sk|}}
+                <div class="combat-skill-row" data-skill-id="{{sk.id}}">
+                  <span class="skill-label">{{sk.name}} {{#if (and sk.hard (not sk.hasHardMarker))}}<span class="hard-flag" title="Hard Skill">(H)</span>{{/if}}</span>
+                  <span class="skill-total-display">+ {{sk.total}}</span>
+                  <div class="skill-roll-cell">
+                    <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
+                  </div>
+                </div>
+              {{/each}}
+            {{/if}}
+          {{/each}}
+        </div>
+      {{else}}
+        <div class="combat-skills-list" style="padding: 6px 12px;">
+          <p class="mf-empty" style="margin: 0;">No combat skills yet.</p>
+        </div>
+      {{/if}}
+
+      <div class="combat-section-header" style="margin-top: 12px;">WEAPONS</div>
+      <div class="weapon-cards">
+        {{#each combatWeapons as |item|}}
+          <details class="weapon-card" data-item-id="{{item.id}}">
+            <summary>
+              <div class="weapon-summary-line">
+                <span class="weapon-expand-icon"><i class="fas fa-chevron-right"></i></span>
+                <input type="text" class="weapon-field weapon-name-input" value="{{item.name}}" data-field="name" />
+                <span class="weapon-scale-pill {{#if item.system.isMecha}}mech{{else}}personal{{/if}}">{{item.displayScale}}</span>
+                <select name="system.weapons.{{@index}}.weaponType" class="weapon-field weapon-type-select" data-field="weaponType">
+                  {{#each @root.weaponTypeOptions as |weaponType|}}
+                    <option value="{{weaponType}}" {{#if (eq weaponType ../system.weaponType)}}selected{{/if}}>{{weaponType}}</option>
+                  {{/each}}
+                </select>
+                <input type="text" name="system.weapons.{{@index}}.damage" class="weapon-field weapon-damage-input" value="{{item.system.damage}}" data-field="damage" placeholder="2d6" />
+                <div class="weapon-attack-modes">
+                  {{#each item.attackModes as |mode|}}
+                    <button type="button" class="weapon-roll weapon-mode-btn" title="{{mode.title}}" data-item-id="{{../id}}" data-mode="{{mode.key}}">{{mode.label}}</button>
+                  {{/each}}
+                  <button type="button" class="weapon-damage-roll weapon-icon-btn" title="Roll damage: {{item.system.damage}}" data-item-id="{{item.id}}"><i class="fas fa-dice"></i></button>
+                  <button type="button" class="item-delete weapon-icon-btn" title="Delete Weapon" data-item-id="{{item.id}}"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>
+            </summary>
+
+            <div class="weapon-card-body">
+              <div class="weapon-detail-grid">
+                <div class="weapon-detail">
+                  <label>WA</label>
+                  <input type="number" name="system.weapons.{{@index}}.wa" class="weapon-field" value="{{item.system.wa}}" data-field="wa" />
+                </div>
+                <div class="weapon-detail">
+                  <label>ROF</label>
+                  <input type="number" name="system.weapons.{{@index}}.rof" class="weapon-field" value="{{item.system.rof}}" min="1" data-field="rof" />
+                </div>
+                <div class="weapon-detail">
+                  <label>Shots</label>
+                  <input type="number" name="system.weapons.{{@index}}.shots" class="weapon-field" value="{{item.system.shots}}" data-field="shots" />
+                </div>
+                <div class="weapon-detail">
+                  <label>Quality</label>
+                  <select name="system.weapons.{{@index}}.quality" class="weapon-field weapon-quality-select" data-field="quality">
+                    {{#each @root.weaponQualityOptions as |qualityOpt|}}
+                      <option value="{{qualityOpt}}" {{#if (eq qualityOpt ../system.quality)}}selected{{/if}}>{{qualityOpt}}</option>
+                    {{/each}}
+                  </select>
+                </div>
+                <div class="weapon-detail">
+                  <label>Skill</label>
+                  <select name="system.weapons.{{@index}}.skill" class="weapon-field weapon-skill-select" data-field="skill">
+                    <option value="" {{#unless item.system.skill}}selected{{/unless}}>—</option>
+                    {{#each @root.weaponSkillOptions as |skillName|}}
+                      <option value="{{skillName}}" {{#if (eq skillName ../system.skill)}}selected{{/if}}>{{skillName}}</option>
+                    {{/each}}
+                  </select>
+                </div>
+                <div class="weapon-detail">
+                  <label>Note</label>
+                  <input type="text" name="system.weapons.{{@index}}.note" class="weapon-field" value="{{item.system.note}}" data-field="note" placeholder="…" />
+                </div>
+                <div class="weapon-detail">
+                  <label>Mech</label>
+                  <label style="display:flex; align-items:center; gap:4px; font-size:0.72rem; text-transform:none; font-weight:600; color:#222;">
+                    <input type="checkbox" class="weapon-field" data-field="isMecha" {{#if item.system.isMecha}}checked{{/if}} />
+                    Scale
+                  </label>
+                </div>
+              </div>
+
+              <div class="weapon-dv-panel">
+                <div class="weapon-dv-grid" aria-label="Range band DVs">
+                  {{#each item.rangeBands as |band|}}
+                    <span>{{band.label}}: DV {{band.dv}}</span>
+                  {{/each}}
+                  {{#if item.hasAutofire}}
+                    <span class="weapon-autofire-inline">AF mode: {{item.autofireSummary}}</span>
+                  {{/if}}
+                </div>
+              </div>
+            </div>
+          </details>
+        {{/each}}
+      </div>
+      <div style="padding: 4px 8px; border: 1px solid #bbb; border-top: none; text-align: center; background: #f5f5f5;">
+        <button type="button" class="create-weapon-item" style="font-size: 0.75rem; padding: 2px 8px;"><i class="fas fa-plus"></i> Add Weapon</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+{{!-- Skills tab partial --}}
+<div class="tab skills" data-tab="skills">
+  <div class="skill-controls flexrow">
+        <button type="button" class="skill-filter-fav-toggle" data-active="{{_skillViewStateSkills.favOnly}}">
+          {{#if _skillViewStateSkills.favOnly}}
+            {{localize 'MF.ShowAllSkills'}}
+          {{else}}
+            {{localize 'MF.ShowFavOnly'}}
+          {{/if}}
+        </button>
+        <button type="button" class="custom-skill-add custom-skill-add-top" title="{{localize 'MF.AddCustomSkill'}}">+</button>
+    {{#unless hasSkillItems}}
+      <div class="skill-menu" style="display:inline-block;position:relative;">
+        <button type="button" class="skill-menu-kebab" title="More actions" aria-label="More actions" style="background:none;border:none;padding:0 6px;"><i class="fas fa-ellipsis-v"></i></button>
+        <div class="skill-menu-dropdown" style="display:none;position:absolute;right:0;z-index:10;background:#222;padding:4px 0;border-radius:4px;box-shadow:0 2px 8px #0008;">
+          <button type="button" class="seed-skills" title="Add Default Skills" aria-label="Seed Default Skills" style="width:100%;text-align:left;padding:4px 16px;background:none;border:none;color:#fff;">Seed Skills</button>
+        </div>
+      </div>
+    {{/unless}}
+  </div>
+  {{#if hasSkillItems}}
+    <div class="skills-two-col">
+      <div class="skills-col">
+        {{#each skillGroupsLeft as |group|}}
+          <section class="skill-group-block" data-category="{{group.category}}">
+            <header class="skill-group-head">
+              <span class="group-spacer"></span>
+              <span class="group-title">{{localize group.localizeKey fallback=group.category}}</span>
+              <span class="group-col-label group-col-rank">LVL</span>
+              <span class="group-col-label group-col-total">Base</span>
+              <span class="group-spacer"></span>
+            </header>
+            <div class="group-body">
+              {{#each group.skills as |sk|}}
+                <div data-skill-id="{{sk.id}}" class="skill-item-row skill-row-compact" data-favorite="{{sk.favorite}}" data-category="{{group.category}}" role="row">
+                  <a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a>
+                  <div class="skill-name-wrap">
+                    <span class="skill-stat-chip">{{sk.stat}}</span>
+                    <span class="skill-name">{{sk.name}}</span>
+                  </div>
+                  <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
+                  <span class="skill-total">{{sk.total}}</span>
+                  <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
+                </div>
+              {{/each}}
+            </div>
+          </section>
+        {{/each}}
+      </div>
+
+      <div class="skills-col">
+        {{#each skillGroupsRight as |group|}}
+          <section class="skill-group-block" data-category="{{group.category}}">
+            <header class="skill-group-head">
+              <span class="group-spacer"></span>
+              <span class="group-title">{{localize group.localizeKey fallback=group.category}}</span>
+              <span class="group-col-label group-col-rank">LVL</span>
+              <span class="group-col-label group-col-total">Base</span>
+              <span class="group-spacer"></span>
+            </header>
+            <div class="group-body">
+              {{#each group.skills as |sk|}}
+                <div data-skill-id="{{sk.id}}" class="skill-item-row skill-row-compact" data-favorite="{{sk.favorite}}" data-category="{{group.category}}" role="row">
+                  <a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a>
+                  <div class="skill-name-wrap">
+                    <span class="skill-stat-chip">{{sk.stat}}</span>
+                    <span class="skill-name">{{sk.name}}</span>
+                  </div>
+                  <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
+                  <span class="skill-total">{{sk.total}}</span>
+                  <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
+                </div>
+              {{/each}}
+            </div>
+          </section>
+        {{/each}}
+
+        <section class="skill-group-block" data-category="CUSTOM">
+          <header class="skill-group-head">
+            <span class="group-title">{{localize 'MF.CustomSkillsCategory'}}</span>
+            <span class="group-cols"><button type="button" class="custom-skill-add" title="{{localize 'MF.AddCustomSkill'}}">+</button></span>
+          </header>
+          <div class="group-body">
+            {{#each customSkills as |sk|}}
+              <div data-skill-id="{{sk.id}}" class="skill-item-row skill-row-compact" data-favorite="{{sk.favorite}}" data-category="CUSTOM" role="row">
+                <a class="skill-fav" title="Toggle Favorite">{{#if sk.favorite}}★{{else}}☆{{/if}}</a>
+                <div class="skill-name-wrap">
+                  <span class="skill-stat-chip">{{sk.stat}}</span>
+                  <span class="skill-name">{{sk.name}}</span>
+                </div>
+                <input class="skill-rank" type="number" min="0" max="50" step="1" value="{{sk.rank}}"/>
+                <span class="skill-total">{{sk.total}}</span>
+                <span class="skill-custom-actions">
+                  <button type="button" class="skill-roll" title="Roll {{sk.name}}"><i class="fas fa-dice-d20"></i></button>
+                  <a class="item-control item-edit" title="{{localize 'MF.Edit'}}" data-item-id="{{sk.id}}"><i class="fas fa-thumbtack"></i></a>
+                  <a class="item-control custom-skill-delete" title="{{localize 'MF.Delete'}}" data-item-id="{{sk.id}}"><i class="fas fa-trash"></i></a>
+                </span>
+              </div>
+            {{/each}}
+          </div>
+        </section>
+      </div>
+    </div>
+  {{else}}
+    <p class="mf-empty">{{localize 'MF.NoSkills'}}</p>
+  {{/if}}
+</div>
