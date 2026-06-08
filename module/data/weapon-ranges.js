@@ -158,6 +158,34 @@ export const WEAPON_RANGE_DVS = {
   }
 };
 
+function _parseBandLabel(label) {
+  const rangeMatch = label.match(/^(\d+)[–\-](\d+)m$/);
+  if (rangeMatch) return { min: Number(rangeMatch[1]), max: Number(rangeMatch[2]) };
+  const singleMatch = label.match(/^(\d+)m$/);
+  if (singleMatch) return { min: 0, max: Number(singleMatch[1]) };
+  return null;
+}
+
+/**
+ * Returns the applicable DV and range band label for a weapon type at a given distance.
+ * @param {string} weaponType  Key from WEAPON_RANGE_DVS (e.g. "Pistol", "SMG")
+ * @param {number} distanceMeters  Distance in meters
+ * @returns {{ dv: number|null, rangeLabel: string }|null}  null if weaponType unknown
+ */
+export function getDVForRange(weaponType, distanceMeters) {
+  const entry = WEAPON_RANGE_DVS[weaponType];
+  if (!entry) return null;
+  for (const band of entry.ranges) {
+    if (!band.label || band.label === "—") continue;
+    const bounds = _parseBandLabel(band.label);
+    if (!bounds) continue;
+    if (distanceMeters >= bounds.min && distanceMeters <= bounds.max) {
+      return { dv: band.dv, rangeLabel: band.label };
+    }
+  }
+  return { dv: null, rangeLabel: "Out of Range" };
+}
+
 export const WEAPON_DAMAGE = {
   "Medium Pistol":    { damage: "2d6", rof: 2 },
   "Heavy Pistol":     { damage: "3d6", rof: 2 },

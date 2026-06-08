@@ -1,7 +1,7 @@
 // module/script/sheets/actor-sheet.js
 import { STAT_DEFAULT_VALUES, applyStatDefaults } from "../../module/data/defaults.js";
 import { LONG_DRIFT_CORE_SKILLS } from "../../module/data/skills.js";
-import { WEAPON_RANGE_DVS } from "../../module/data/weapon-ranges.js";
+import { WEAPON_RANGE_DVS, getDVForRange } from "../../module/data/weapon-ranges.js";
 import { CPR_WEAPONS_COMPENDIUM } from "../../module/data/weapons-compendium.js";
 
 const normalizeSkillName = (name) => String(name || "").trim().toLowerCase();
@@ -241,6 +241,19 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     const s = String(v).replace(/,/g, "").trim();
     const n = Number(s);
     return Number.isFinite(n) ? n : fallback;
+  }
+
+  // Returns the armor-penalty-reduced value for REF/DEX/MOVE; raw stat value for all others.
+  // Falls back to raw when effectiveXxx is 0 (uninitialized, before first prepareDerivedData).
+  static _effectiveStatVal(system, stat) {
+    const effectiveMap = { REF: 'effectiveREF', DEX: 'effectiveDEX', MOVE: 'effectiveMOVE' };
+    const effectiveKey = effectiveMap[stat];
+    if (effectiveKey) {
+      const v = Number(system?.substats?.[effectiveKey]);
+      if (v > 0) return v;
+    }
+    const raw = system?.stats?.[stat];
+    return typeof raw === 'object' && raw !== null ? Number(raw.value) || 0 : Number(raw) || 0;
   }
 
   // Keep display text fields readable by dropping punctuation-only junk values.
@@ -938,7 +951,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
         const category = rawCategory.toUpperCase();
         // If category is PSI, force stat to WILL for RED compatibility.
         if (category === 'PSI' && stat !== 'WILL') { stat = 'WILL'; needsPsiFix = true; }
-        const statVal = ctx.system.stats?.[stat]?.value ?? 0;
+        const statVal = LongDriftActorSheet._effectiveStatVal(ctx.system, stat);
         const rank = this.constructor._num(it.system?.rank, 0);
         const total = statVal + rank;
         const nameHasHard = /\(H\)|\[H\]/i.test(it.name);
@@ -1190,6 +1203,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     });
     html.on("click", ".ability-roll, .stat-roll", ev => this._onRollStat(ev));
     html.on("click", ".stun-save-roll", ev => this._onRollStunSave(ev));
+    html.on("click", ".death-save-roll", ev => this._onRollDeathSave(ev));
     html.on("click", ".skill-roll", ev => this._onRollSkill(ev));
     html.on("click", ".skill-fav", ev => this._onToggleFavorite(ev));
     html.on("change", ".skill-rank", ev => this._onChangeSkillRank(ev));
@@ -1857,7 +1871,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     const totalCell = li.querySelector('.skill-total');
     if (totalCell) {
       const stat = this.constructor.normalizeStatKey(skill.system?.stat || 'REF');
-      const statVal = this.actor.system?.stats?.[stat]?.value ?? 0;
+      const statVal = LongDriftActorSheet._effectiveStatVal(this.actor.system, stat);
       totalCell.textContent = statVal + val;
     }
   }
@@ -2164,6 +2178,31 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     await roll.toMessage({ speaker, flavor });
   }
 
+  async _onRollDeathSave(ev) {
+    ev.preventDefault();
+    const threshold = Number(this.actor.system?.substats?.death) || 0;
+    const roll = new Roll("1d10");
+    await roll.evaluate();
+
+    const survived = roll.total <= threshold;
+    const outcome = survived
+      ? '<strong style="color:green">SURVIVED</strong>'
+      : '<strong style="color:red">DEAD</strong>';
+    const note = survived ? '<div>Roll again next turn.</div>' : '';
+    const speaker = ChatMessage.getSpeaker({ actor: this.actor });
+    const flavor = `
+      <div>
+        <div><strong>${this.actor.name}</strong> rolls Death Save</div>
+        <div>Roll Result: <strong>${roll.total}</strong></div>
+        <div>Threshold: <strong>${threshold}</strong></div>
+        <div>Outcome: ${outcome}</div>
+        ${note}
+      </div>
+    `;
+
+    await roll.toMessage({ speaker, flavor });
+  }
+
   /** Roll a skill */
   async _onRollSkill(ev) {
     ev.preventDefault();
@@ -2176,8 +2215,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     const stat = this.constructor.normalizeStatKey(skill.system?.stat || "INT");
     const rank = LongDriftActorSheet._num(skill.system?.rank, 0);
     const statLabel = stat;
-    const statSource = this.actor.system?.stats?.[stat];
-    const statVal = typeof statSource === 'object' && statSource !== null ? Number(statSource.value) || 0 : Number(statSource) || 0;
+    const statVal = LongDriftActorSheet._effectiveStatVal(this.actor.system, stat);
 
     let mod = 0;
     let difficulty = null;
@@ -2409,12 +2447,57 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     let skillTotal = 0;
     if (skillName) {
       const skill = this.actor.items.find(i => i.type === 'skill' && i.name === skillName);
-      
+
       if (skill) {
         const statKey = this.constructor.normalizeStatKey(skill.system?.stat || "INT");
-        const statVal = this.actor.system?.stats?.[statKey]?.value ?? 0;
+        const statVal = LongDriftActorSheet._effectiveStatVal(this.actor.system, statKey);
         const rank = LongDriftActorSheet._num(skill.system?.rank, 0);
         skillTotal = statVal + rank;
+      }
+    }
+
+    // Range DV section — targeted or reference table
+    const weaponType = String(weapon.system?.weaponType || "");
+    let dvSection = "";
+    let attackDV = null;
+    const targetToken = game.user.targets?.size > 0 ? [...game.user.targets][0] : null;
+    const attackerToken = canvas?.tokens?.controlled?.[0] ?? null;
+
+    if (targetToken && attackerToken) {
+      try {
+        const pathResult = canvas.grid.measurePath([attackerToken.center, targetToken.center]);
+        const distanceMeters = Math.round(pathResult.distance * 10) / 10;
+        const dvResult = getDVForRange(weaponType, distanceMeters);
+        attackDV = dvResult?.dv ?? null;
+        const dvDisplay = attackDV != null
+          ? `<strong>${attackDV}</strong>`
+          : `<em style="color:#999;">Out of Range</em>`;
+        const rangeBand = dvResult?.rangeLabel ?? "—";
+        dvSection = `
+          <div style="margin-top:0.4rem;border-top:1px solid #555;padding-top:0.4rem;">
+            <div>Target: <strong>${targetToken.name}</strong> @ ${distanceMeters}m [${rangeBand}]</div>
+            <div>Attack DV: ${dvDisplay}</div>
+          </div>`;
+      } catch (err) {
+        console.warn("Long Drift | Range DV lookup failed:", err);
+      }
+    } else {
+      const entry = WEAPON_RANGE_DVS[weaponType];
+      if (entry) {
+        const rows = entry.ranges
+          .filter(b => b.dv != null)
+          .map(b => `<tr><td>${b.label}</td><td style="text-align:right;padding-left:1rem;">${b.dv}</td></tr>`)
+          .join("");
+        if (rows) {
+          dvSection = `
+            <div style="margin-top:0.4rem;border-top:1px solid #555;padding-top:0.4rem;">
+              <div style="margin-bottom:0.2rem;font-style:italic;font-size:0.85em;color:#aaa;">Range DVs (no target selected):</div>
+              <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+                <thead><tr><th style="text-align:left;">Range</th><th style="text-align:right;">DV</th></tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>`;
+        }
       }
     }
 
@@ -2423,14 +2506,28 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     const isPoorJam = quality === "Poor" && Number(plusDice?.[0] || 0) === 1;
 
     const rollTotal = baseTotal + total;
-    
+
     const plusStr = plusDice.join(' + ');
     const minusStr = minusDice.length ? ' - (' + minusDice.join(' + ') + ')' : '';
     const explodedUp = plusDice.some(d=>d===10) ? 'Up' : '';
     const explodedDown = minusDice.some(d=>d===1) ? (explodedUp ? '/Down' : 'Down') : '';
     const tag = (explodedUp || explodedDown) ? ` <span style="color: #999; font-size: 0.85em;">[Exploding ${explodedUp}${explodedDown}]</span>` : '';
     const capTag = capped ? ` <span style="color: #999; font-size: 0.85em;">[Cap ${maxExtra}]</span>` : '';
-    
+
+    // HIT/MISS — only shown when a target DV is known
+    let hitMissHTML = '';
+    if (attackDV !== null) {
+      const isHit = rollTotal >= attackDV;
+      hitMissHTML = `<div style="margin-top:0.35rem;font-size:1.2em;font-weight:700;color:${isHit ? '#27ae60' : '#c0392b'};">${isHit ? 'HIT' : 'MISS'}</div>`;
+    }
+
+    // Single damage roll button showing the formula label
+    const damageFormula = (weapon.system?.damage ?? '').trim();
+    const safeWeaponName = weapon.name.replace(/"/g, '&quot;');
+    const damageBtnHTML = damageFormula
+      ? `<div style="margin-top:0.5rem;"><button type="button" class="long-drift-damage-btn" data-actor-id="${this.actor.id}" data-item-id="${itemId}" data-damage="${damageFormula}" data-weapon-name="${safeWeaponName}">Roll Damage: ${damageFormula}</button></div>`
+      : '';
+
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
     const weaponName = weapon.name;
     const modeLabel = mode === "autofire" ? "Autofire" : "Attack";
@@ -2448,10 +2545,13 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
           <div>Quality (${quality}): <strong>${qualityDisplay}</strong></div>
         </div>
         <div style="margin-top:0.35rem;">Final Total: <strong style="font-size: 1.2em; color: #4a90e2;">${rollTotal}</strong></div>
+        ${dvSection}
+        ${hitMissHTML}
         ${jamText}
+        ${damageBtnHTML}
       </div>
     `;
-    
+
     await roll.toMessage({ speaker, flavor });
     if (isPoorJam) {
       ui.notifications.warn(`${weaponName} jammed (Poor Quality).`);

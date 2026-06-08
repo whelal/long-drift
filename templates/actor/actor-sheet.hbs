@@ -31,7 +31,10 @@
       </div>
       <div class="red-vital">
         <span class="label">Death Save</span>
-        <span class="value">{{system.substats.death}}</span>
+        <span class="value" style="display:flex;align-items:center;justify-content:center;gap:4px;width:100%;text-align:center;">
+          {{system.substats.death}}
+          <button type="button" class="death-save-roll" title="Roll Death Save" style="width:18px;height:18px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;line-height:1;vertical-align:middle;"><i class="fas fa-dice-d20"></i></button>
+        </span>
       </div>
       <div class="red-vital">
         <span class="label">I.P.</span>

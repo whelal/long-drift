@@ -272,7 +272,7 @@ Hooks.once("init", () => {
 
   // Initiative - Keep the fallback formula
   CONFIG.Combat.initiative = {
-    formula: "1d10 + @system.stats.REF.value + @system.substats.initiative",
+    formula: "1d10 + @system.substats.effectiveREF + @system.substats.initiative",
     decimals: 0
   };
 });
@@ -491,6 +491,31 @@ Hooks.on("updateTokenActor", (tokenActor, changes, options, userId) => {
   });
 });
 
+Hooks.on("renderChatMessage", (message, html) => {
+  html.find(".long-drift-damage-btn").on("click", async (ev) => {
+    ev.preventDefault();
+    const btn = ev.currentTarget;
+    const actorId = btn.dataset.actorId;
+    const damageFormula = btn.dataset.damage;
+    const weaponName = btn.dataset.weaponName || "weapon";
+    if (!damageFormula) return;
+
+    const actor = game.actors?.get(actorId);
+    let roll;
+    try {
+      roll = new Roll(damageFormula);
+      await roll.evaluate();
+    } catch (err) {
+      ui.notifications.error(`Invalid damage formula: ${damageFormula}`);
+      return;
+    }
+
+    const speaker = actor ? ChatMessage.getSpeaker({ actor }) : ChatMessage.getSpeaker();
+    const flavor = `<strong>${actor?.name ?? "Unknown"}</strong> rolls damage for <strong>${weaponName}</strong>: <em>${damageFormula}</em> = <strong style="font-size: 1.2em; color: #c0392b;">${roll.total}</strong>`;
+    await roll.toMessage({ speaker, flavor });
+  });
+});
+
 Hooks.once("ready", async () => {
   console.log("long-drift | ready");
 
@@ -525,11 +550,11 @@ Hooks.once("ready", async () => {
           // Use our exploding d10 system
           const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await LongDriftActorSheet._rollBidirectionalExplodingD10();
           
-          // Get REF and initiative modifier
-          const refVal = actor.system?.stats?.REF?.value ?? 0;
+          // Get effective REF (armor-penalty-reduced) and initiative modifier
+          const refVal = actor.system?.substats?.effectiveREF || (actor.system?.stats?.REF?.value ?? 0);
           const initMod = actor.system?.substats?.initiative ?? 0;
           const finalTotal = base + refVal + initMod;
-          
+
           // Update the combatant
           await combatant.update({ initiative: finalTotal });
           
@@ -581,11 +606,11 @@ Hooks.once("ready", async () => {
         // Use our exploding d10 system
         const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await LongDriftActorSheet._rollBidirectionalExplodingD10();
         
-        // Get REF and initiative modifier
-        const refVal = actor.system?.stats?.REF?.value ?? 0;
+        // Get effective REF (armor-penalty-reduced) and initiative modifier
+        const refVal = actor.system?.substats?.effectiveREF || (actor.system?.stats?.REF?.value ?? 0);
         const initMod = actor.system?.substats?.initiative ?? 0;
         const finalTotal = base + refVal + initMod;
-        
+
         // Create flavor text showing the breakdown
         const plusStr = plusDice.join(' + ');
         const minusStr = minusDice.length ? ' - (' + minusDice.join(' + ') + ')' : '';

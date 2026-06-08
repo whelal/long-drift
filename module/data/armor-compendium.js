@@ -1,0 +1,94 @@
+export const CPR_ARMOR_COMPENDIUM = [
+  {
+    name: "Leathers",
+    type: "armor",
+    img: "icons/equipment/chest/vest-leather-simple.webp",
+    system: {
+      description: "Leather with reinforced pads. Favored by Nomads.",
+      sp: 4, spMax: 4, penalty: 0, cost: 20,
+      locations: ["head", "body"]
+    }
+  },
+  {
+    name: "Kevlar",
+    type: "armor",
+    img: "icons/equipment/chest/vest-cloth-reinforced.webp",
+    system: {
+      description: "Heat-resistant synthetic fabric. Stops bullets.",
+      sp: 7, spMax: 7, penalty: 0, cost: 50,
+      locations: ["head", "body"]
+    }
+  },
+  {
+    name: "Light Armorjack",
+    type: "armor",
+    img: "icons/equipment/chest/breastplate-layered.webp",
+    system: {
+      description: "Kevlar and plastic mesh weave. Superior bullet protection.",
+      sp: 11, spMax: 11, penalty: 0, cost: 100,
+      locations: ["head", "body"]
+    }
+  },
+  {
+    name: "Bodyweight Suit",
+    type: "armor",
+    img: "icons/equipment/chest/vest-cloth-blue.webp",
+    system: {
+      description: "Skinsuit with impact-absorbing armorgel. Worn as one piece on both locations. Supports Interface Plugs and Cyberdeck slot.",
+      sp: 11, spMax: 11, penalty: 0, cost: 1000,
+      locations: ["head", "body"]
+    }
+  },
+  {
+    name: "Medium Armorjack",
+    type: "armor",
+    img: "icons/equipment/chest/breastplate-scale-grey.webp",
+    system: {
+      description: "Heavier Armorjack with solid plastic plating.",
+      sp: 12, spMax: 12, penalty: 2, cost: 100,
+      locations: ["head", "body"]
+    }
+  },
+  {
+    name: "Heavy Armorjack",
+    type: "armor",
+    img: "icons/equipment/chest/breastplate-banded.webp",
+    system: {
+      description: "Densest Armorjack with layered plastic and mesh.",
+      sp: 13, spMax: 13, penalty: 2, cost: 500,
+      locations: ["head", "body"]
+    }
+  },
+  {
+    name: "Flak",
+    type: "armor",
+    img: "icons/equipment/chest/breastplate-metal-worn.webp",
+    system: {
+      description: "Military flak vest with metal plates. Stops high explosive and heavy caliber rounds.",
+      sp: 15, spMax: 15, penalty: 4, cost: 500,
+      locations: ["head", "body"]
+    }
+  },
+  {
+    name: "Metalgear",
+    type: "armor",
+    img: "icons/equipment/chest/breastplate-metal-full.webp",
+    system: {
+      description: "Solid metal and plastic plates on mesh body cover. Stops almost anything.",
+      sp: 18, spMax: 18, penalty: 4, cost: 5000,
+      locations: ["head", "body"]
+    }
+  },
+  {
+    name: "Bulletproof Shield",
+    type: "armor",
+    img: "icons/equipment/shield/shield-reinforced-blue.webp",
+    system: {
+      description: "Portable cover with 10 HP reduced by damage. Always takes one arm to use.",
+      sp: 0, spMax: 0, penalty: 0, cost: 100,
+      hp: 10, hpMax: 10,
+      locations: ["shield"],
+      note: "Provides cover HP not SP. Takes one arm."
+    }
+  }
+];

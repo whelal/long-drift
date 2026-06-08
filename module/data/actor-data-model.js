@@ -69,7 +69,11 @@ export class ActorDataModel extends foundry.abstract.DataModel {
                 humanity: new fields.NumberField({initial: 0, min: 0, integer: true}),
                 humanityMax: new fields.NumberField({initial: 0, min: 0, integer: true}),
                 woundState: new fields.StringField({initial: "Healthy"}),
-                woundStateSubtitle: new fields.StringField({initial: "No penalties"})
+                woundStateSubtitle: new fields.StringField({initial: "No penalties"}),
+                armorPenalty: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                effectiveREF: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                effectiveDEX: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                effectiveMOVE: new fields.NumberField({initial: 0, min: 0, integer: true})
             }),
             armor: new fields.SchemaField({
                 head: new fields.SchemaField({
@@ -174,6 +178,16 @@ export class ActorDataModel extends foundry.abstract.DataModel {
         const body = readStatValue("BODY", "body");
         const emp = readStatValue("EMP", "emp");
         const will = readStatValue("WILL", "will");
+        const ref = readStatValue("REF", "ref");
+        const dex = readStatValue("DEX", "dex");
+        const move = readStatValue("MOVE", "move");
+
+        const headPenalty = Number(this.armor?.head?.penalty ?? 0) || 0;
+        const bodyPenalty = Number(this.armor?.body?.penalty ?? 0) || 0;
+        const armorPenalty = Math.max(headPenalty, bodyPenalty);
+        const effectiveREF = Math.max(1, ref - armorPenalty);
+        const effectiveDEX = Math.max(1, dex - armorPenalty);
+        const effectiveMOVE = Math.max(1, move - armorPenalty);
 
         const hpMax = 10 + (5 * Math.ceil((body + will) / 2));
         const humanityMax = emp * 10;
@@ -213,5 +227,9 @@ export class ActorDataModel extends foundry.abstract.DataModel {
         substats.death = body;
         substats.woundState = woundState;
         substats.woundStateSubtitle = woundStateSubtitle;
+        substats.armorPenalty = armorPenalty;
+        substats.effectiveREF = effectiveREF;
+        substats.effectiveDEX = effectiveDEX;
+        substats.effectiveMOVE = effectiveMOVE;
     }
 }

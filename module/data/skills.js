@@ -38,6 +38,7 @@ export const LONG_DRIFT_CORE_SKILLS = [
 
   // Fighting (DEX)
   { name: "Brawling", type: "skill", system: { stat: "DEX", category: "Fighting", rank: 0, favorite: false, ip: 0 } },
+  { name: "Evasion", type: "skill", system: { stat: "DEX", category: "Fighting", rank: 0, favorite: false, ip: 0 } },
   { name: "Martial Arts (x2)", type: "skill", system: { stat: "DEX", category: "Fighting", rank: 0, favorite: false, ip: 0, hard: true } },
   { name: "Melee Weapon", type: "skill", system: { stat: "DEX", category: "Fighting", rank: 0, favorite: false, ip: 0 } },
 

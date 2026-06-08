@@ -1,4 +1,4 @@
-## [Unreleased]
+## [0.1.9] - 2026-06-07
 ### Changed
 - Seeding now uses `Long Drift Core Skills` naming for world folders and defaults.
 - Settings text for seeding updated to reference Long Drift core data instead of legacy labels.
