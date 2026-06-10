@@ -164,8 +164,12 @@
     "cyberware": {
       "templates": ["base"],
       "slot": "torso",
+      "category": "",
       "description": "",
-      "spaces": 1,
+      "slotsUsed": 1,
+      "optionSlots": 0,
+      "isOption": false,
+      "requiresFoundation": "",
       "humanityLoss": 0,
       "cost": 0,
       "armor": 0,

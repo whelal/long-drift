@@ -815,7 +815,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       const item = itemId ? this.actor.items.get(itemId) : null;
       let usedSpaces = 0;
       if (item?.type === 'cyberware') {
-        usedSpaces = this.constructor._num(item.system?.spaces, 1);
+        usedSpaces = this.constructor._num(item.system?.slotsUsed, 1);
         installedCount += 1;
       }
       spaceByLocation[locKey] = usedSpaces;
@@ -827,7 +827,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
         label: String(locData?.label || locKey),
         hasCyberware: item?.type === 'cyberware',
         itemName: item?.type === 'cyberware' ? String(item.name || 'Unknown Cyberware') : 'None',
-        spaces: usedSpaces,
+        slotsUsed: usedSpaces,
         humanityCost: item?.type === 'cyberware' ? this.constructor._num(item.system?.humanityLoss, 0) : 0,
         cost: item?.type === 'cyberware' ? this.constructor._num(item.system?.cost, 0) : 0,
         description: item?.type === 'cyberware' ? String(item.system?.description || item.system?.note || '') : ''
@@ -839,7 +839,44 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       installedCount
     };
     ctx.cyberwareInstalledByLocation = installedByLocation;
-    
+
+    // Build cyberware-by-category hierarchy for the body tab
+    {
+      const CATEGORY_ORDER = ["Neuralware", "Cyberoptics", "Cyberaudio", "Cyberarm", "Cyberleg", "Internal Cyberware", "External Cyberware", "Fashionware", "Borgware"];
+      const allCw = this.actor.items.filter(i => i.type === 'cyberware');
+      const cwOptions = allCw.filter(i => !!i.system?.isOption && String(i.system?.requiresFoundation || '') !== '');
+      const cwNonOptions = allCw.filter(i => !i.system?.isOption || String(i.system?.requiresFoundation || '') === '');
+
+      const cwCatMap = new Map();
+      for (const cat of CATEGORY_ORDER) cwCatMap.set(cat, []);
+
+      for (const item of cwNonOptions) {
+        const cat = String(item.system?.category || '');
+        if (!cwCatMap.has(cat)) cwCatMap.set(cat, []);
+        const slotsMax = this.constructor._num(item.system?.optionSlots, 0);
+        const isFoundation = slotsMax > 0;
+        const slotsUsed = isFoundation
+          ? allCw
+              .filter(opt => String(opt.system?.requiresFoundation || '') === item.name)
+              .reduce((sum, opt) => sum + this.constructor._num(opt.system?.slotsUsed, 1), 0)
+          : 0;
+        const slotColorClass = isFoundation
+          ? (slotsUsed < slotsMax ? 'slots-ok' : slotsUsed === slotsMax ? 'slots-full' : 'slots-over')
+          : '';
+        const options = isFoundation
+          ? cwOptions
+              .filter(opt => String(opt.system?.requiresFoundation || '') === item.name)
+              .map(opt => ({ id: opt.id, name: opt.name, foundationName: item.name }))
+          : [];
+        cwCatMap.get(cat)?.push({ id: item.id, name: item.name, isFoundation, slotsUsed, slotsMax, slotColorClass, options });
+      }
+
+      ctx.cyberwareByCategory = CATEGORY_ORDER.map(category => {
+        const items = cwCatMap.get(category) || [];
+        return { category, items, hasItems: items.length > 0 };
+      });
+    }
+
     // Debug: Always log body state before template render
     console.log('long-drift | getData body check:', {
       hasBody: !!ctx.system.body,
@@ -1240,6 +1277,39 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     html.on('click', '[data-action="unequip-cyberware"]', ev => this._onUnequipBodyItem(ev));
     html.on('click', '[data-action="remove-delete-cyberware"]', ev => this._onRemoveDeleteBodyItem(ev));
+    html.on('click', '[data-action="cw-edit"]', ev => {
+      ev.preventDefault();
+      const id = ev.currentTarget.dataset.itemId;
+      this.actor.items.get(id)?.sheet?.render(true);
+    });
+    html.on('click', '[data-action="cw-remove"]', async ev => {
+      ev.preventDefault();
+      const id = ev.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = this.actor.items.get(id);
+      if (!item) return;
+      const confirmed = await Dialog.confirm({
+        title: 'Remove Cyberware',
+        content: `<p>Delete <strong>${item.name}</strong> from this actor?</p>`,
+        yes: () => true,
+        no: () => false
+      });
+      if (!confirmed) return;
+      try {
+        const locs = this.actor.system?.body?.locations || {};
+        const patch = {};
+        for (const [k, v] of Object.entries(locs)) {
+          if (v?.itemId === id) patch[`system.body.locations.${k}.itemId`] = null;
+        }
+        if (Object.keys(patch).length) await this.actor.update(patch);
+        await item.delete();
+        this._refreshBodyItemIcons();
+        this.render(false);
+      } catch (e) {
+        console.error('long-drift | Failed to remove cyberware', e);
+        ui.notifications.error('Failed to remove cyberware.');
+      }
+    });
 
     // Quick actions for new single action row
     html.on('click', '#mf-btn-adjust-sp', async ev => {

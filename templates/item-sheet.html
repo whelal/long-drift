@@ -28,8 +28,28 @@
       </div>
 
       <div class="form-group">
-        <label>Spaces</label>
-        <input type="number" name="system.spaces" value="{{system.spaces}}" min="0"/>
+        <label>Slots Used</label>
+        <input type="number" name="system.slotsUsed" value="{{system.slotsUsed}}" min="0"/>
+      </div>
+
+      <div class="form-group">
+        <label>Option Slots</label>
+        <input type="number" name="system.optionSlots" value="{{system.optionSlots}}" min="0"/>
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" name="system.category" value="{{system.category}}" placeholder="Neuralware, Cyberoptics, Cyberarm…"/>
+      </div>
+
+      <div class="form-group">
+        <label>Is Option</label>
+        <input type="checkbox" name="system.isOption" {{#if system.isOption}}checked{{/if}}/>
+      </div>
+
+      <div class="form-group">
+        <label>Requires Foundation</label>
+        <input type="text" name="system.requiresFoundation" value="{{system.requiresFoundation}}" placeholder="Neural Link, Cybereye…"/>
       </div>
 
       <div class="form-group">

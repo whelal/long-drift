@@ -97,7 +97,7 @@ export const CPR_WEAPONS_COMPENDIUM = [
       description: "Retractable forearm blades. Requires Wolvers cyberware installed.",
       weaponType: "Melee",
       skill: "Melee Weapon",
-      damage: "2d6",
+      damage: "3d6",
       rof: 2,
       shots: 0,
       wa: 0,
@@ -107,6 +107,106 @@ export const CPR_WEAPONS_COMPENDIUM = [
       isMecha: false,
       pen: 0,
       note: "Cyberware weapon. Melee damage ignores half SP."
+    }
+  },
+  {
+    name: "Big Knucks",
+    type: "weapon",
+    img: "icons/svg/combat.svg",
+    system: {
+      description: "Armored knuckles. Requires Big Knucks cyberware installed.",
+      weaponType: "Melee",
+      skill: "Melee Weapon",
+      damage: "2d6",
+      rof: 2,
+      shots: 0,
+      wa: 0,
+      concealable: true,
+      hands: 0,
+      cost: 100,
+      isMecha: false,
+      pen: 0,
+      note: "Cyberware weapon. Melee damage ignores half SP. Installed in arm."
+    }
+  },
+  {
+    name: "Rippers",
+    type: "weapon",
+    img: "icons/svg/claw.svg",
+    system: {
+      description: "Carbo-glass claws. Requires Rippers cyberware installed.",
+      weaponType: "Melee",
+      skill: "Melee Weapon",
+      damage: "2d6",
+      rof: 2,
+      shots: 0,
+      wa: 0,
+      concealable: true,
+      hands: 0,
+      cost: 500,
+      isMecha: false,
+      pen: 0,
+      note: "Cyberware weapon. Melee damage ignores half SP. Installed in arm."
+    }
+  },
+  {
+    name: "Scratchers",
+    type: "weapon",
+    img: "icons/svg/claw.svg",
+    system: {
+      description: "Carbo-glass fingernails. Requires Scratchers cyberware installed.",
+      weaponType: "Melee",
+      skill: "Melee Weapon",
+      damage: "1d6",
+      rof: 2,
+      shots: 0,
+      wa: 0,
+      concealable: true,
+      hands: 0,
+      cost: 100,
+      isMecha: false,
+      pen: 0,
+      note: "Cyberware weapon. Melee damage ignores half SP. Installed in arm."
+    }
+  },
+  {
+    name: "Slice N Dice",
+    type: "weapon",
+    img: "icons/svg/upgrade.svg",
+    system: {
+      description: "Monofilament whip implanted in the thumb. Requires Slice N Dice cyberware installed.",
+      weaponType: "Melee",
+      skill: "Melee Weapon",
+      damage: "2d6",
+      rof: 2,
+      shots: 0,
+      wa: 0,
+      concealable: true,
+      hands: 0,
+      cost: 500,
+      isMecha: false,
+      pen: 0,
+      note: "Cyberware weapon. Monofilament whip. Melee damage ignores half SP. Installed in arm."
+    }
+  },
+  {
+    name: "Talon Foot",
+    type: "weapon",
+    img: "icons/svg/wingfoot.svg",
+    system: {
+      description: "Blade mounted in foot. Requires Talon Foot cyberware installed.",
+      weaponType: "Melee",
+      skill: "Melee Weapon",
+      damage: "1d6",
+      rof: 2,
+      shots: 0,
+      wa: 0,
+      concealable: true,
+      hands: 0,
+      cost: 500,
+      isMecha: false,
+      pen: 0,
+      note: "Cyberware weapon. Melee damage ignores half SP. Installed in foot."
     }
   },
 

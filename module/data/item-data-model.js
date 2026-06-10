@@ -70,7 +70,11 @@ export class CyberwareDataModel extends ItemDataModel {
     const parentSchema = super.defineSchema();
     return foundry.utils.mergeObject(parentSchema, {
       slot: new fields.StringField({ initial: "torso" }),
-      spaces: new fields.NumberField({ initial: 1, integer: true, min: 0 }),
+      category: new fields.StringField({ initial: "" }),
+      slotsUsed: new fields.NumberField({ initial: 1, integer: true, min: 0 }),
+      optionSlots: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      isOption: new fields.BooleanField({ initial: false }),
+      requiresFoundation: new fields.StringField({ initial: "" }),
       humanityLoss: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
       cost: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
       armor: new fields.NumberField({ initial: 0, integer: true, min: 0 }),

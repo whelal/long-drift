@@ -1,0 +1,12 @@
+.cw-category { margin-bottom: 2px; }
+.cw-category-header { background: #000; color: #fff; padding: 4px 8px; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; }
+.cw-item-row { display: flex; align-items: center; padding: 4px 8px; border-bottom: 1px solid #ddd; gap: 8px; }
+.cw-item-name { flex: 1; font-size: 0.85rem; }
+.cw-item-type { width: 130px; font-size: 0.75rem; color: #666; flex-shrink: 0; }
+.cw-option-row .cw-item-name { padding-left: 8px; color: #444; }
+.cw-indent { color: #999; }
+.cw-slots { font-size: 0.72rem; margin-left: 6px; font-weight: 600; }
+.slots-ok { color: #2d6a2d; }
+.slots-full { color: #856404; }
+.slots-over { color: #c00; }
+.cw-none { padding: 4px 8px; font-size: 0.8rem; color: #888; font-style: italic; }

@@ -1,3 +1,8 @@
+## [0.1.10] - 2026-06-10
+### Changed
+- Expanded compendium and item data updates across armor, cyberware, and weapons content.
+- Revised actor body tab templates, sheet handling, and related styling for the current workflow updates.
+
 ## [0.1.9] - 2026-06-07
 ### Changed
 - Seeding now uses `Long Drift Core Skills` naming for world folders and defaults.

@@ -1,77 +1,84 @@
 <div class="tab body" data-tab="body">
-  <div class="mf-body-grid mf-body-flex" style="display: flex; gap: 2em; align-items: flex-start;">
-    <div class="mf-body-col mf-body-left" style="flex: 1 1 0;">
-      <section class="mf-doll">
-        <svg class="mf-doll-svg" viewBox="0 0 200 420" aria-label="Cyberware body map">
-          <!-- Torso -->
-          <rect class="hit-zone torso"   x="70" y="100" width="60" height="90" data-loc="torso"  />
-          <!-- Head -->
-          <circle class="hit-zone head"  cx="100" cy="60" r="22" data-loc="head" />
-          <!-- Arms -->
-          <rect class="hit-zone lArm"    x="38" y="110" width="28" height="70" data-loc="lArm"  />
-          <rect class="hit-zone rArm"    x="134" y="110" width="28" height="70" data-loc="rArm" />
-          <!-- Hands -->
-          <rect class="hit-zone lHand"   x="30" y="182" width="22" height="24" data-loc="lHand" />
-          <rect class="hit-zone rHand"   x="148" y="182" width="22" height="24" data-loc="rHand" />
-          <!-- Legs -->
-          <rect class="hit-zone lLeg"    x="78" y="194" width="20" height="90" data-loc="lLeg"  />
-          <rect class="hit-zone rLeg"    x="102" y="194" width="20" height="90" data-loc="rLeg" />
-          <!-- Feet -->
-          <rect class="hit-zone lFoot"   x="74" y="286" width="24" height="28" data-loc="lFoot" />
-          <rect class="hit-zone rFoot"   x="100" y="286" width="24" height="28" data-loc="rFoot" />
+<style>
+  .tab.body .cw-item-row { display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #ddd; gap:8px; font-size:0.82rem; }
+  .tab.body .cw-item-name { flex:1; }
+  .tab.body .cw-item-type { width:130px; color:#666; font-size:0.75rem; flex-shrink:0; }
+  .tab.body .cw-option-row .cw-item-name { padding-left:16px; color:#555; }
+  .tab.body .cw-slots { font-size:0.72rem; margin-left:6px; font-weight:600; }
+  .tab.body .slots-ok { color:#2d6a2d; }
+  .tab.body .slots-full { color:#856404; }
+  .tab.body .slots-over { color:#c00; }
+  .tab.body .cw-none { padding:4px 8px; font-size:0.8rem; color:#888; font-style:italic; }
+  .tab.body .cw-icon-btn { width:24px; padding:0; display:inline-flex; align-items:center; justify-content:center; height:24px; font-size:0.72rem; flex-shrink:0; }
+  .tab.body .combat-section-header { background: #000; color: #fff; padding: 4px 8px; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; }
+</style>
 
-          <!-- Item icon placeholders (placed above regions) -->
-          <image class="item-icon" data-loc="head"  x="78" y="28" width="44" height="44" href=""/>
-          <image class="item-icon" data-loc="torso" x="85" y="120" width="30" height="30" href=""/>
-          <image class="item-icon" data-loc="lArm"  x="28" y="120" width="30" height="30" href=""/>
-          <image class="item-icon" data-loc="rArm"  x="138" y="120" width="30" height="30" href=""/>
-          <image class="item-icon" data-loc="lHand" x="26" y="182" width="22" height="22" href=""/>
-          <image class="item-icon" data-loc="rHand" x="152" y="182" width="22" height="22" href=""/>
-          <image class="item-icon" data-loc="lLeg"  x="74" y="270" width="24" height="24" href=""/>
-          <image class="item-icon" data-loc="rLeg"  x="100" y="270" width="24" height="24" href=""/>
-          <image class="item-icon" data-loc="lFoot" x="74" y="316" width="24" height="24" href=""/>
-          <image class="item-icon" data-loc="rFoot" x="100" y="316" width="24" height="24" href=""/>
-        </svg>
-
-        <div class="mf-doll-help">
-          <div class="mf-drop-hint">Install cyberware by body location</div>
-        </div>
-      </section>
+{{#each cyberwareByCategory as |group|}}
+<div class="combat-section">
+  <div class="combat-section-header">{{group.category}}</div>
+  {{#if group.hasItems}}
+    {{#each group.items as |item|}}
+    <div class="cw-item-row">
+      <span class="cw-item-name">{{item.name}}{{#if item.isFoundation}}<span class="cw-slots {{item.slotColorClass}}">({{item.slotsUsed}}/{{item.slotsMax}} slots)</span>{{/if}}</span>
+      <span class="cw-item-type">{{group.category}}</span>
+      <button type="button" class="cw-icon-btn" data-action="cw-edit" data-item-id="{{item.id}}" title="Edit"><i class="fas fa-edit"></i></button>
+      <button type="button" class="cw-icon-btn" data-action="cw-remove" data-item-id="{{item.id}}" title="Remove"><i class="fas fa-trash"></i></button>
     </div>
-    <div class="mf-body-col mf-body-right" style="flex: 2 1 0;">
-      <section class="mf-body-table">
-        <div class="mf-cyberware-installed-list">
-          <div class="mf-cyberware-installed-title">Installed Cyberware by Location</div>
-          <ul>
-            {{#each cyberwareInstalledByLocation as |entry|}}
-              <li>
-                <div class="mf-cw-loc">{{entry.label}}</div>
-                <div class="mf-cw-item {{#if entry.hasCyberware}}is-installed{{else}}is-empty{{/if}}">
-                  <div class="mf-cw-name">{{entry.itemName}}{{#if entry.hasCyberware}} ({{entry.spaces}} space{{#unless (eq entry.spaces 1)}}s{{/unless}}){{/if}}</div>
-                  {{#if entry.hasCyberware}}
-                    <div class="mf-cw-meta">HL: {{entry.humanityCost}} | Cost: {{entry.cost}} eb</div>
-                    {{#if entry.description}}
-                      <div class="mf-cw-desc">{{entry.description}}</div>
-                    {{/if}}
-                    <button type="button" class="mf-cw-remove" data-action="unequip-cyberware" data-loc="{{entry.key}}">Remove</button>
-                    <button type="button" class="mf-cw-remove mf-cw-delete" data-action="remove-delete-cyberware" data-loc="{{entry.key}}" data-item-id="{{entry.itemId}}">Remove + Delete</button>
-                  {{/if}}
-                </div>
-              </li>
-            {{/each}}
-          </ul>
-        </div>
-
-        <div class="mf-cyberware-space-summary">
-          <strong>Cyberware Spaces Used:</strong>
-          {{cyberwareSpaces.totalUsed}} total across {{cyberwareSpaces.installedCount}} installed items
-        </div>
-
-        <div class="mf-body-notes">
-          <label>{{localize "MF.Notes"}}</label>
-          <textarea name="system.body.notes">{{system.body.notes}}</textarea>
-        </div>
-      </section>
+    {{#each item.options as |opt|}}
+    <div class="cw-item-row cw-option-row">
+      <span class="cw-item-name"><span style="color:#bbb">└ </span>{{opt.name}}</span>
+      <span class="cw-item-type">{{group.category}}</span>
+      <button type="button" class="cw-icon-btn" data-action="cw-edit" data-item-id="{{opt.id}}" title="Edit"><i class="fas fa-edit"></i></button>
+      <button type="button" class="cw-icon-btn" data-action="cw-remove" data-item-id="{{opt.id}}" title="Remove"><i class="fas fa-trash"></i></button>
     </div>
+    {{/each}}
+    {{/each}}
+  {{else}}
+    <div class="cw-none">None installed</div>
+  {{/if}}
+</div>
+{{/each}}
+
+<section class="mf-doll mf-doll-compact">
+  <svg class="mf-doll-svg" viewBox="0 0 200 420" aria-label="Cyberware body map">
+    <!-- Torso -->
+    <rect class="hit-zone torso"   x="70" y="100" width="60" height="90" data-loc="torso"  />
+    <!-- Head -->
+    <circle class="hit-zone head"  cx="100" cy="60" r="22" data-loc="head" />
+    <!-- Arms -->
+    <rect class="hit-zone lArm"    x="38" y="110" width="28" height="70" data-loc="lArm"  />
+    <rect class="hit-zone rArm"    x="134" y="110" width="28" height="70" data-loc="rArm" />
+    <!-- Hands -->
+    <rect class="hit-zone lHand"   x="30" y="182" width="22" height="24" data-loc="lHand" />
+    <rect class="hit-zone rHand"   x="148" y="182" width="22" height="24" data-loc="rHand" />
+    <!-- Legs -->
+    <rect class="hit-zone lLeg"    x="78" y="194" width="20" height="90" data-loc="lLeg"  />
+    <rect class="hit-zone rLeg"    x="102" y="194" width="20" height="90" data-loc="rLeg" />
+    <!-- Feet -->
+    <rect class="hit-zone lFoot"   x="74" y="286" width="24" height="28" data-loc="lFoot" />
+    <rect class="hit-zone rFoot"   x="100" y="286" width="24" height="28" data-loc="rFoot" />
+
+    <!-- Item icon placeholders -->
+    <image class="item-icon" data-loc="head"  x="78" y="28" width="44" height="44" href=""/>
+    <image class="item-icon" data-loc="torso" x="85" y="120" width="30" height="30" href=""/>
+    <image class="item-icon" data-loc="lArm"  x="28" y="120" width="30" height="30" href=""/>
+    <image class="item-icon" data-loc="rArm"  x="138" y="120" width="30" height="30" href=""/>
+    <image class="item-icon" data-loc="lHand" x="26" y="182" width="22" height="22" href=""/>
+    <image class="item-icon" data-loc="rHand" x="152" y="182" width="22" height="22" href=""/>
+    <image class="item-icon" data-loc="lLeg"  x="74" y="270" width="24" height="24" href=""/>
+    <image class="item-icon" data-loc="rLeg"  x="100" y="270" width="24" height="24" href=""/>
+    <image class="item-icon" data-loc="lFoot" x="74" y="316" width="24" height="24" href=""/>
+    <image class="item-icon" data-loc="rFoot" x="100" y="316" width="24" height="24" href=""/>
+  </svg>
+
+  <div class="mf-doll-help">
+    <div class="mf-drop-hint">Install cyberware by body location</div>
   </div>
+
+  <div class="mf-cyberware-space-summary">
+    <strong>Cyberware Spaces Used:</strong>
+    {{cyberwareSpaces.totalUsed}} total across {{cyberwareSpaces.installedCount}} installed items
+  </div>
+</section>
+
 </div>
