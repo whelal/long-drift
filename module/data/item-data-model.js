@@ -58,7 +58,12 @@ export class ArmorDataModel extends ItemDataModel {
     const fields = foundry.data.fields;
     const parentSchema = super.defineSchema();
     return foundry.utils.mergeObject(parentSchema, {
-      armorValue: new fields.NumberField({ initial: 0, integer: true })
+      sp: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      spMax: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      penalty: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      cost: new fields.NumberField({ initial: 0, integer: true, min: 0 }),
+      locations: new fields.ArrayField(new fields.StringField(), { initial: ["head", "body"] }),
+      concealable: new fields.BooleanField({ initial: false })
     });
   }
 }

@@ -2465,6 +2465,34 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
   }
 
+  /** @override — intercept armor drops; update SP fields only, do not embed the item */
+  async _onDropItem(event, data) {
+    const item = await fromUuid(data.uuid);
+    if (!item || item.type !== "armor") {
+      return super._onDropItem(event, data);
+    }
+
+    const sp = item.system?.sp ?? 0;
+    const spMax = item.system?.spMax ?? sp;
+    const penalty = item.system?.penalty ?? 0;
+    const locations = item.system?.locations ?? ["head", "body"];
+
+    const update = {};
+    if (locations.includes("head")) {
+      update["system.armor.head.sp"] = sp;
+      update["system.armor.head.spMax"] = spMax;
+      update["system.armor.head.penalty"] = penalty;
+    }
+    if (locations.includes("body")) {
+      update["system.armor.body.sp"] = sp;
+      update["system.armor.body.spMax"] = spMax;
+      update["system.armor.body.penalty"] = penalty;
+    }
+
+    if (Object.keys(update).length) await this.actor.update(update);
+    ui.notifications.info(`${item.name} equipped — Head SP ${sp} / Body SP ${sp}, Penalty ${penalty}`);
+  }
+
   /** Roll weapon damage from the formula stored in item.system.damage */
   async _onRollWeaponDamage(ev) {
     ev.preventDefault();

@@ -1,3 +1,11 @@
+## [0.1.11] - 2026-06-18
+### Added
+- Armor compendium seeding macro to create or update the world `Long Drift — Armor` pack from system data.
+
+### Changed
+- Armor compendium entries now use structured armor fields (`sp`, `spMax`, `penalty`, `locations`, `concealable`) for sheet-driven updates.
+- Dropping armor items onto an actor sheet now equips their SP and penalty values directly onto the actor instead of embedding the item.
+
 ## [0.1.10] - 2026-06-10
 ### Changed
 - Expanded compendium and item data updates across armor, cyberware, and weapons content.
