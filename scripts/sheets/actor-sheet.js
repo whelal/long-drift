@@ -493,7 +493,7 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       normalizeIntField("system.meta.reputation", Number(this.actor.system?.meta?.reputation ?? 0));
       normalizeIntField("system.meta.eurobucks", Number(this.actor.system?.meta?.eurobucks ?? 500));
       normalizeIntField("system.substats.humanity", Number(this.actor.system?.substats?.humanity ?? 0));
-      normalizeIntField("system.substats.hp_current", Number(this.actor.system?.substats?.hp_current ?? 0));
+      normalizeIntField("system.substats.hp.value", Number(this.actor.system?.substats?.hp?.value ?? 0));
 
       // Core stat values can come through as arrays when multiple tabs include the same fields.
       // Coerce all to integers so DataModel schema validation always receives numbers.
@@ -515,14 +515,14 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
 
       const hpMax = 10 + (5 * Math.ceil(body / 2)) + (5 * Math.ceil(will / 2));
       const humanityMax = emp * 10;
-      formData["system.substats.hp"] = hpMax;
+      formData["system.substats.hp.max"] = hpMax;
       formData["system.substats.humanityMax"] = humanityMax;
       formData["system.substats.death"] = body;
 
       // Clamp current pools to their derived max values.
-      const hpCurrent = Number(formData["system.substats.hp_current"]);
+      const hpCurrent = Number(formData["system.substats.hp.value"]);
       const humanityCurrent = Number(formData["system.substats.humanity"]);
-      formData["system.substats.hp_current"] = Number.isFinite(hpCurrent)
+      formData["system.substats.hp.value"] = Number.isFinite(hpCurrent)
         ? Math.max(0, Math.min(Math.trunc(hpCurrent), hpMax))
         : hpMax;
       formData["system.substats.humanity"] = Number.isFinite(humanityCurrent)
@@ -533,13 +533,13 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
       const seriousThreshold = Math.ceil(hpMax / 2);
       let woundState = "Healthy";
       let woundStateSubtitle = "No penalties";
-      if (formData["system.substats.hp_current"] <= 0) {
+      if (formData["system.substats.hp.value"] <= 0) {
         woundState = "Mortally Wounded";
         woundStateSubtitle = "-4 all Actions / -6 MOVE / Death Save each Turn";
-      } else if (formData["system.substats.hp_current"] < seriousThreshold) {
+      } else if (formData["system.substats.hp.value"] < seriousThreshold) {
         woundState = "Seriously Wounded";
         woundStateSubtitle = "-2 all Actions / Stabilization DV13";
-      } else if (formData["system.substats.hp_current"] < hpMax) {
+      } else if (formData["system.substats.hp.value"] < hpMax) {
         woundState = "Lightly Wounded";
         woundStateSubtitle = "Stabilization DV10";
       }
@@ -658,24 +658,24 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     const derivedHumanityMax = empStat * 10;
 
     // Snapshot current values before overwriting max fields, since ctx.system is a live reference.
-    const snapHp = this.constructor._num(ctx.system.substats.hp, 0);
-    const snapHpCurrent = this.constructor._num(ctx.system.substats.hp_current, 0);
+    const snapHp = this.constructor._num(ctx.system.substats.hp?.max, 0);
+    const snapHpCurrent = this.constructor._num(ctx.system.substats.hp?.value, 0);
     const snapHumanityMax = this.constructor._num(ctx.system.substats.humanityMax, 0);
     const snapHumanity = this.constructor._num(ctx.system.substats.humanity, 0);
 
     // Max values are always derived from stats. Unconditionally override whatever prepareDerivedData
     // or stored data has, so the sheet reflects the correct caps even if the DataModel lifecycle
     // did not call prepareDerivedData() (e.g. DataModel vs TypeDataModel base class difference).
-    ctx.system.substats.hp = derivedHpMax;
+    ctx.system.substats.hp.max = derivedHpMax;
     ctx.system.substats.humanityMax = derivedHumanityMax;
     ctx.system.substats.death = bodyStat;
 
     // Current values: initialize to max for fresh actors (both snapped 0 = schema default, never set).
     // For used actors clamp to the new max to handle stat-change edge cases.
     if (snapHp === 0 && snapHpCurrent === 0) {
-      ctx.system.substats.hp_current = derivedHpMax;
+      ctx.system.substats.hp.value = derivedHpMax;
     } else {
-      ctx.system.substats.hp_current = Math.max(0, Math.min(snapHpCurrent, derivedHpMax));
+      ctx.system.substats.hp.value = Math.max(0, Math.min(snapHpCurrent, derivedHpMax));
     }
 
     if (snapHumanityMax === 0 && snapHumanity === 0) {
@@ -2479,13 +2479,13 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     const update = {};
     if (locations.includes("head")) {
-      update["system.armor.head.sp"] = sp;
-      update["system.armor.head.spMax"] = spMax;
+      update["system.armor.head.sp.value"] = sp;
+      update["system.armor.head.sp.max"] = spMax;
       update["system.armor.head.penalty"] = penalty;
     }
     if (locations.includes("body")) {
-      update["system.armor.body.sp"] = sp;
-      update["system.armor.body.spMax"] = spMax;
+      update["system.armor.body.sp.value"] = sp;
+      update["system.armor.body.sp.max"] = spMax;
       update["system.armor.body.penalty"] = penalty;
     }
 

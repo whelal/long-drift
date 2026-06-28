@@ -27,9 +27,10 @@
       name: "Pirate Grunt",
       rank: "Mook",
       stats: { INT: 4, REF: 6, DEX: 5, TECH: 4, COOL: 5, WILL: 4, LUCK: 4, MOVE: 5, BODY: 6, EMP: 4 },
-      armor: { head: 11, body: 11 },
+      armor: { head: 11, body: 11, penalty: 0 },
       weapons: ["Heavy Pistol"],
       cyberware: ["Interface Plugs"],
+      notes: "Ammo: Heavy Pistol x12. Radio Communicator.",
       skills: [
         { name: "Handgun",       rank: 4 },
         { name: "Shoulder Arms", rank: 4 },
@@ -43,9 +44,10 @@
       rank: "Mook",
       // EMP 3: base 4, Wolvers –7 humanity → floor(33/10) = 3
       stats: { INT: 4, REF: 7, DEX: 6, TECH: 4, COOL: 6, WILL: 6, LUCK: 4, MOVE: 6, BODY: 7, EMP: 3 },
-      armor: { head: 13, body: 13 },
+      armor: { head: 13, body: 13, penalty: 2 },
       weapons: ["Shotgun", "Medium Melee Weapon", "Wolvers"],
       cyberware: ["Wolvers"],
+      notes: "Ammo: Shotgun Shells x8. Medium Melee backup.",
       skills: [
         { name: "Brawling",      rank: 5 },
         { name: "Melee Weapon",  rank: 4 },
@@ -58,9 +60,10 @@
       name: "Heavy Gunner",
       rank: "Mook",
       stats: { INT: 4, REF: 6, DEX: 5, TECH: 4, COOL: 5, WILL: 5, LUCK: 4, MOVE: 5, BODY: 7, EMP: 4 },
-      armor: { head: 11, body: 11 },
+      armor: { head: 11, body: 11, penalty: 0 },
       weapons: ["Heavy SMG"],
       cyberware: ["Cybereye", "Targeting Scope"],
+      notes: "Ammo: SMG x30. Frag Grenade x2.",
       skills: [
         { name: "Heavy Weapons",  rank: 6 },
         { name: "Autofire (x2)", rank: 4 },
@@ -72,9 +75,10 @@
       name: "Pirate Veteran",
       rank: "Lieutenant",
       stats: { INT: 6, REF: 7, DEX: 6, TECH: 5, COOL: 7, WILL: 7, LUCK: 5, MOVE: 6, BODY: 7, EMP: 5 },
-      armor: { head: 13, body: 13 },
+      armor: { head: 13, body: 13, penalty: 2 },
       weapons: ["Assault Rifle", "Heavy Pistol"],
       cyberware: ["Neural Link", "Interface Plugs"],
+      notes: "Ammo: Rifle x25, Heavy Pistol x8. Radio Communicator.",
       skills: [
         { name: "Shoulder Arms",  rank: 5 },
         { name: "Handgun",        rank: 5 },
@@ -87,9 +91,10 @@
       name: "Pirate Pilot",
       rank: "Lieutenant",
       stats: { INT: 5, REF: 8, DEX: 6, TECH: 6, COOL: 6, WILL: 5, LUCK: 5, MOVE: 6, BODY: 6, EMP: 5 },
-      armor: { head: 11, body: 11 },
+      armor: { head: 11, body: 11, penalty: 0 },
       weapons: ["Heavy Pistol"],
       cyberware: ["Neural Link", "Interface Plugs"],
+      notes: "Ammo: Heavy Pistol x8. Interface Plugs installed.",
       skills: [
         { name: "Pilot Air Vehicle",  rank: 6 },
         { name: "Handgun",            rank: 4 },
@@ -102,9 +107,10 @@
       rank: "Boss",
       // EMP 4: base 6, Neural Link –7, Kerenzikov –7, Targeting Scope –3 → floor(43/10) = 4
       stats: { INT: 7, REF: 8, DEX: 7, TECH: 6, COOL: 8, WILL: 8, LUCK: 6, MOVE: 7, BODY: 8, EMP: 4 },
-      armor: { head: 15, body: 15 },
+      armor: { head: 15, body: 15, penalty: 4 },
       weapons: ["Very Heavy Pistol", "Heavy Melee Weapon"],
       cyberware: ["Neural Link", "Kerenzikov Booster", "Targeting Scope"],
+      notes: "Ammo: VH Pistol x8. Kerenzikov active. Radio Communicator.",
       skills: [
         { name: "Handgun",       rank: 6 },
         { name: "Shoulder Arms", rank: 6 },
@@ -118,10 +124,10 @@
       name: "Cyberpsycho",
       rank: "Boss",
       stats: { INT: 4, REF: 8, DEX: 8, TECH: 4, COOL: 6, WILL: 3, LUCK: 0, MOVE: 7, BODY: 8, EMP: 0 },
-      armor: { head: 11, body: 11 },
+      armor: { head: 11, body: 11, penalty: 0 },
       weapons: ["Wolvers", "Very Heavy Pistol"],
       cyberware: ["Wolvers", "Subdermal Armor", "Cybereye", "Targeting Scope", "Pain Editor"],
-      notes: "Pain Editor: ignores all wound state action penalties. Immune to Intimidation and Fear. Does not negotiate."
+      notes: "Pain Editor active — ignores wound state penalties. No negotiation."
       // No skills: Cyberpsycho retains the full auto-seeded core skill list.
     }
   ];
@@ -243,8 +249,8 @@
           rank: mook.rank,
           stats: buildStatsPayload(mook.stats),
           armor: {
-            head: { sp: mook.armor.head, spMax: mook.armor.head },
-            body: { sp: mook.armor.body, spMax: mook.armor.body }
+            head: { sp: { value: mook.armor.head, max: mook.armor.head }, penalty: mook.armor.penalty },
+            body: { sp: { value: mook.armor.body, max: mook.armor.body }, penalty: mook.armor.penalty }
           },
           notes: mook.notes ?? ""
         }
@@ -255,10 +261,18 @@
         const created = await Actor.createDocuments([actorPayload], { pack: pack.collection });
         actorDoc = created?.[0];
         if (!actorDoc) throw new Error(`Failed to create actor: ${mook.name}`);
+        await actorDoc.update({
+          "system.armor.head.penalty": mook.armor.penalty ?? 0,
+          "system.armor.body.penalty": mook.armor.penalty ?? 0
+        });
         existingByName.set(mook.name, actorDoc);
         createdCount += 1;
       } else {
         await actorDoc.update(actorPayload);
+        await actorDoc.update({
+          "system.armor.head.penalty": mook.armor.penalty ?? 0,
+          "system.armor.body.penalty": mook.armor.penalty ?? 0
+        });
         updatedCount += 1;
       }
 

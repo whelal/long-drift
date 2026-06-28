@@ -1,3 +1,17 @@
+## [0.1.12] - 2026-06-28
+### Added
+- Mook compendium seeding now sets armor penalty (`system.armor.{head,body}.penalty`) and equipment notes per archetype.
+
+### Changed
+- `system.substats.hp` and `system.armor.{head,body}.sp` are now `{value, max}` pairs instead of separate flat fields (`hp`/`hp_current`, `sp`/`spMax`), matching Foundry's native token resource-bar resolution.
+- New actors default Token Bar 1 to HP and Bar 2 to Body SP, with bars visible on hover.
+
+### Fixed
+- Token resource bars for HP and armor SP now render on the canvas and can be edited via the Token HUD or canvas drag without throwing schema validation errors.
+
+### Migration
+- Existing actors are upgraded automatically on load via `ActorDataModel.migrateData()` — no manual steps required.
+
 ## [0.1.11] - 2026-06-18
 ### Added
 - Armor compendium seeding macro to create or update the world `Long Drift — Armor` pack from system data.

@@ -99,8 +99,8 @@ async function _applyCriticalInjuryResult({ actor, location, injury, total, appl
   };
 
   if (applyBonus) {
-    const hpCurrent = Number(actor.system?.substats?.hp_current ?? 0) || 0;
-    updateData["system.substats.hp_current"] = Math.max(0, hpCurrent - 5);
+    const hpCurrent = Number(actor.system?.substats?.hp?.value ?? 0) || 0;
+    updateData["system.substats.hp.value"] = Math.max(0, hpCurrent - 5);
   }
 
   await actor.update(updateData);
@@ -275,6 +275,23 @@ Hooks.once("init", () => {
     formula: "1d10 + @system.substats.effectiveREF + @system.substats.initiative",
     decimals: 0
   };
+
+  // Default new tokens to track HP/armor on bar1/bar2 unless a creator explicitly set one
+  Hooks.on("preCreateActor", (actor, data, options, userId) => {
+    const updates = {};
+    if (!data.prototypeToken?.bar1?.attribute) {
+      updates["prototypeToken.bar1.attribute"] = "substats.hp";
+    }
+    if (!data.prototypeToken?.bar2?.attribute) {
+      updates["prototypeToken.bar2.attribute"] = "armor.body.sp";
+    }
+    if (data.prototypeToken?.displayBars === undefined || data.prototypeToken?.displayBars === 0) {
+      updates["prototypeToken.displayBars"] = 30;
+    }
+    if (Object.keys(updates).length > 0) {
+      actor.updateSource(updates);
+    }
+  });
 });
 
 // Auto-seed core skills when actors are created
@@ -660,6 +677,24 @@ Hooks.once("ready", async () => {
     }
     if (changed) {
       actor.update({ 'system.stats': stats }).catch(err => console.warn('long-drift | stat migration failed for actor', actor.id, err));
+    }
+  }
+
+  // Migration: fix existing actors with no token bar1 attribute set, or one set to a path
+  // mistakenly written by an earlier version of this hook: either "system."-prefixed (attribute
+  // paths are resolved relative to actor.system, so the prefix never worked) or "substats.hp_current"
+  // (substats.hp_current no longer exists now that HP is a single substats.hp {value, max} field).
+  if (game.user?.isGM) {
+    for (const actor of game.actors.contents ?? []) {
+      const bar1 = actor.prototypeToken?.bar1?.attribute;
+      if (!bar1 || bar1.startsWith("system.") || bar1 === "substats.hp_current") {
+        await actor.update({
+          "prototypeToken.bar1.attribute": "substats.hp",
+          "prototypeToken.bar2.attribute": "armor.body.sp",
+          "prototypeToken.displayBars": 30
+        });
+        console.log(`long-drift | Fixed token bars for actor: ${actor.name}`);
+      }
     }
   }
 });

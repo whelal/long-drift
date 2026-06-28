@@ -1,4 +1,31 @@
 export class ActorDataModel extends foundry.abstract.DataModel {
+    // Pre-schema-validation fixup: substats.hp and armor.{head,body}.sp used to be flat
+    // fields (hp/hp_current, sp/spMax). They're now {value, max} pairs so Foundry's native
+    // token bar resolution works. This runs on every load, so old actor data is upgraded
+    // transparently without a migration script.
+    static migrateData(source, ...args) {
+        const substats = source?.substats;
+        if (substats && (substats.hp === null || typeof substats.hp !== "object")) {
+            const max = Number(substats.hp) || 0;
+            const value = Number(substats.hp_current ?? max) || 0;
+            substats.hp = { value, max };
+            delete substats.hp_current;
+        }
+
+        const armor = source?.armor;
+        for (const location of ["head", "body"]) {
+            const loc = armor?.[location];
+            if (loc && (loc.sp === null || typeof loc.sp !== "object")) {
+                const max = Number(loc.spMax ?? loc.sp) || 0;
+                const value = Number(loc.sp ?? max) || 0;
+                loc.sp = { value, max };
+                delete loc.spMax;
+            }
+        }
+
+        return super.migrateData(source, ...args);
+    }
+
     static defineSchema() {
         const fields = foundry.data.fields;
     return {
@@ -61,8 +88,10 @@ export class ActorDataModel extends foundry.abstract.DataModel {
                 run: new fields.NumberField({initial: 0, min: 0, integer: false}),
                 leap: new fields.NumberField({initial: 0, min: 0, integer: false}),
                 swim: new fields.NumberField({initial: 0, min: 0, integer: false}),
-                hp: new fields.NumberField({initial: 0, min: 0, integer: true}),
-                hp_current: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                hp: new fields.SchemaField({
+                    value: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                    max: new fields.NumberField({initial: 0, min: 0, integer: true})
+                }),
                 initiative: new fields.NumberField({initial: 0, integer: true}), // removed min: 0 to allow negative modifiers
                 dodge: new fields.NumberField({initial: 0, min: 0, integer: true}),
                 enc: new fields.NumberField({initial: 0, min: 0, integer: true}),
@@ -77,14 +106,18 @@ export class ActorDataModel extends foundry.abstract.DataModel {
             }),
             armor: new fields.SchemaField({
                 head: new fields.SchemaField({
-                    sp: new fields.NumberField({ initial: 0, min: 0, integer: true }),
-                    spMax: new fields.NumberField({ initial: 0, min: 0, integer: true }),
+                    sp: new fields.SchemaField({
+                        value: new fields.NumberField({ initial: 0, min: 0, integer: true }),
+                        max: new fields.NumberField({ initial: 0, min: 0, integer: true })
+                    }),
                     penalty: new fields.NumberField({ initial: 0, integer: true }),
                     itemId: new fields.StringField({ initial: "" })
                 }),
                 body: new fields.SchemaField({
-                    sp: new fields.NumberField({ initial: 0, min: 0, integer: true }),
-                    spMax: new fields.NumberField({ initial: 0, min: 0, integer: true }),
+                    sp: new fields.SchemaField({
+                        value: new fields.NumberField({ initial: 0, min: 0, integer: true }),
+                        max: new fields.NumberField({ initial: 0, min: 0, integer: true })
+                    }),
                     penalty: new fields.NumberField({ initial: 0, integer: true }),
                     itemId: new fields.StringField({ initial: "" })
                 })
@@ -198,9 +231,9 @@ export class ActorDataModel extends foundry.abstract.DataModel {
             ? Math.max(0, Math.min(Math.trunc(humanityCurrentRaw), humanityMax))
             : humanityMax;
 
-        const hpCurrentRaw = (substats.hp_current === 0 && substats.hp === 0)
+        const hpCurrentRaw = (substats.hp.value === 0 && substats.hp.max === 0)
             ? hpMax
-            : Number(substats.hp_current ?? hpMax);
+            : Number(substats.hp.value ?? hpMax);
         const hpCurrent = Number.isFinite(hpCurrentRaw)
             ? Math.max(0, Math.min(Math.trunc(hpCurrentRaw), hpMax))
             : hpMax;
@@ -220,8 +253,8 @@ export class ActorDataModel extends foundry.abstract.DataModel {
             woundStateSubtitle = "Stabilization DV10";
         }
 
-        substats.hp = hpMax;
-        substats.hp_current = hpCurrent;
+        substats.hp.max = hpMax;
+        substats.hp.value = hpCurrent;
         substats.humanity = humanityCurrent;
         substats.humanityMax = humanityMax;
         substats.death = body;

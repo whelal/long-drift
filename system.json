@@ -2,7 +2,7 @@
   "id": "long-drift",
   "title": "Long Drift",
   "description": "A Cyberpunk RED system for Foundry Virtual Tabletop.",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "compatibility": {
     "minimum": "13",
     "verified": "14"
