@@ -23,18 +23,37 @@ export class ActorDataModel extends foundry.abstract.DataModel {
             }
         }
 
+        // meta.points and meta.eurobucks used to be flat numbers. They're now
+        // {value, transactions} so changes can be logged instead of just overwritten.
+        const meta = source?.meta;
+        for (const key of ["points", "eurobucks"]) {
+            const entry = meta?.[key];
+            if (entry !== null && entry !== undefined && typeof entry !== "object") {
+                meta[key] = { value: Number(entry) || 0, transactions: [] };
+            }
+        }
+
         return super.migrateData(source, ...args);
     }
 
     static defineSchema() {
         const fields = foundry.data.fields;
+        const ledgerField = (initialValue, { allowNegative = false } = {}) => new fields.SchemaField({
+            value: new fields.NumberField({ initial: initialValue, integer: true, ...(allowNegative ? {} : { min: 0 }) }),
+            transactions: new fields.ArrayField(new fields.SchemaField({
+                delta: new fields.NumberField({ initial: 0, integer: true }),
+                total: new fields.NumberField({ initial: 0, integer: true }),
+                note: new fields.StringField({ initial: "" }),
+                time: new fields.NumberField({ initial: 0 })
+            }), { initial: [] })
+        });
     return {
             meta: new fields.SchemaField({
                 role: new fields.StringField({initial: ""}),
                 age: new fields.NumberField({initial: 25, min: 0, integer: true}),
-                points: new fields.NumberField({initial: 0, min: 0, integer: true}),
+                points: ledgerField(0),
                 reputation: new fields.NumberField({initial: 0, min: 0, integer: true}),
-                eurobucks: new fields.NumberField({initial: 500, min: 0, integer: true})
+                eurobucks: ledgerField(500, { allowNegative: true })
             }),
             role: new fields.SchemaField({
                 name: new fields.StringField({ initial: "" }),

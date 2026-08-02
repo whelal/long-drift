@@ -38,7 +38,10 @@
       </div>
       <div class="red-vital">
         <span class="label">I.P.</span>
-        <input class="value-input auto-fit-input" name="system.meta.points" type="number" min="0" step="1" value="{{system.meta.points}}" data-fit-min="10"/>
+        <span class="value" style="display:flex;align-items:center;justify-content:center;gap:4px;width:100%;">
+          <input class="value-input auto-fit-input" name="system.meta.points.value" type="number" min="0" step="1" value="{{system.meta.points.value}}" data-fit-min="10"/>
+          <button type="button" class="meta-ledger-btn" data-field="points" title="View/Add IP Log" style="width:18px;height:18px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;line-height:1;vertical-align:middle;flex-shrink:0;"><i class="fas fa-receipt"></i></button>
+        </span>
       </div>
       <div class="red-vital">
         <span class="label">Reputation</span>
@@ -50,7 +53,10 @@
       </div>
       <div class="red-vital red-vital-wide red-vital-edit">
         <span class="label">Eurobucks</span>
-        <input class="value-input auto-fit-input" name="system.meta.eurobucks" type="number" min="0" step="1" value="{{system.meta.eurobucks}}" data-fit-min="10"/>
+        <span class="value" style="display:flex;align-items:center;justify-content:center;gap:4px;width:100%;">
+          <input class="value-input auto-fit-input" name="system.meta.eurobucks.value" type="number" step="1" value="{{system.meta.eurobucks.value}}" data-fit-min="10"/>
+          <button type="button" class="meta-ledger-btn" data-field="eurobucks" title="View/Add Eurobucks Log" style="width:18px;height:18px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;line-height:1;vertical-align:middle;flex-shrink:0;"><i class="fas fa-receipt"></i></button>
+        </span>
       </div>
       <div class="red-vital red-vital-wide red-vital-search">
         <input class="value-input auto-fit-input" type="text" value="" placeholder="Search skills, gear, etc." data-fit-min="9"/>
