@@ -28,7 +28,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   // ── NEURALWARE ────────────────────────────────────────────────────────────
   cyberware(
     "Neural Link",
-    "icons/svg/circuitry.svg",
+    "icons/svg/clockwork.svg",
     "head", 7, 0, 6, 1, 500,
     "Baseline interface implant that unlocks many advanced cyberware options.",
     "Core neural backbone",
@@ -36,7 +36,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Interface Plugs",
-    "icons/svg/circuitry.svg",
+    "icons/svg/clockwork.svg",
     "head", 7, 0, 6, 1, 500,
     "Hardline data ports for direct machine connection and vehicle control.",
     "Commonly mounted near neck or wrist",
@@ -44,7 +44,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Chipware Socket",
-    "icons/svg/circuitry.svg",
+    "icons/svg/clockwork.svg",
     "head", 7, 0, 5, 1, 500,
     "Expansion socket that accepts a single chipware module.",
     "Neural Link option",
@@ -131,7 +131,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Rippers",
-    "icons/svg/claw.svg",
+    "icons/weapons/fist/claw-grey-black.webp",
     "arm", 3, 0, 6, 1, 500,
     "Carbo-glass claws. Medium Melee Weapon.",
     "Can be installed as only piece of Cyberware in a meat arm. Concealable.",
@@ -139,7 +139,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Scratchers",
-    "icons/svg/claw.svg",
+    "icons/weapons/fist/claw-grey-black.webp",
     "arm", 2, 0, 4, 1, 100,
     "Carbo-glass fingernails. Light Melee Weapon.",
     "Can be installed as only piece of Cyberware in a meat arm. Concealable.",
@@ -155,7 +155,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Wolvers",
-    "icons/svg/claw.svg",
+    "icons/weapons/fist/claw-grey-black.webp",
     "arm", 7, 0, 7, 1, 500,
     "Retractable forearm blades designed for sudden close-quarters attacks.",
     "Install in either arm",
@@ -180,7 +180,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Tool Hand",
-    "icons/svg/wrench.svg",
+    "icons/svg/upgrade.svg",
     "arm", 3, 0, 6, 1, 100,
     "Micro-tool package in the hand for field repairs and bypass work.",
     "Install in either arm",
@@ -204,7 +204,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Medscanner",
-    "icons/svg/heart.svg",
+    "icons/svg/heal.svg",
     "arm", 7, 0, 6, 2, 500,
     "Medscanner installed in Cyberarm. +2 to First Aid and Paramedic.",
     "Requires Cyberarm, takes 2 Option Slots.",
@@ -212,7 +212,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Popup Grenade Launcher",
-    "icons/weapons/guns/gun-pistol-flintlock.svg",
+    "icons/weapons/guns/gun-pistol-flintlock.webp",
     "arm", 7, 0, 7, 2, 500,
     "Single shot Grenade Launcher installed in Cyberarm. Weapon can be concealed.",
     "Requires Cyberarm, takes 2 Option Slots.",
@@ -220,7 +220,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Popup Melee Weapon",
-    "icons/weapons/swords/sword-short.svg",
+    "icons/weapons/swords/swords-short.webp",
     "arm", 7, 0, 7, 2, 500,
     "Any Light, Medium, or Heavy Melee Weapon installed in Cyberarm. Concealable even if not normally concealable.",
     "Requires Cyberarm, takes 2 Option Slots.",
@@ -228,7 +228,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Popup Ranged Weapon",
-    "icons/weapons/guns/gun-pistol.svg",
+    "icons/weapons/guns/gun-pistol-brass.webp",
     "arm", 7, 0, 7, 2, 500,
     "Any One Handed Ranged Weapon installed in Cyberarm. Concealable even if not normally concealable.",
     "Requires Cyberarm, takes 2 Option Slots.",
@@ -260,7 +260,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Cyberdeck (Cyberarm)",
-    "icons/svg/circuitry.svg",
+    "icons/svg/clockwork.svg",
     "arm", 3, 0, 7, 3, 500,
     "Cyberdeck installed in Cyberarm.",
     "Requires Cyberarm, takes 3 Option Slots.",
@@ -386,7 +386,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Biomonitor",
-    "icons/svg/heart.svg",
+    "icons/svg/heal.svg",
     "torso", 7, 0, 7, 1, 1000,
     "Tracks critical vitals and can alert medtech contacts.",
     "Medical telemetry",
@@ -394,7 +394,7 @@ export const CPR_CYBERWARE_COMPENDIUM = [
   ),
   cyberware(
     "Gills",
-    "icons/svg/water.svg",
+    "icons/svg/whale.svg",
     "torso", 7, 0, 7, 2, 1000,
     "Respiratory conversion package for extended underwater operation.",
     "Aquatic adaptation",
