@@ -7,6 +7,21 @@ import { CPR_WEAPONS_COMPENDIUM } from "../../module/data/weapons-compendium.js"
 const normalizeSkillName = (name) => String(name || "").trim().toLowerCase();
 const CPR_CORE_SKILL_NAMES = new Set(LONG_DRIFT_CORE_SKILLS.map(skill => normalizeSkillName(skill.name)));
 
+const SITUATIONAL_MODIFIERS = [
+  { label: "Complimentary Skill", value: 1 },
+  { label: "Taking Extra Time", value: 1 },
+  { label: "Night/Low Light", value: -1 },
+  { label: "Never done task before", value: -1 },
+  { label: "Complex action", value: -2 },
+  { label: "Wrong tools/parts for job", value: -2 },
+  { label: "Bad Sleep", value: -2 },
+  { label: "Extremely stressed", value: -2 },
+  { label: "Extremely tired", value: -4 },
+  { label: "Very drunk/sedated", value: -4 },
+  { label: "Attempting task stealthily", value: -4 },
+  { label: "Smoke/darkness", value: -4 },
+];
+
 export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
   static _getWeaponTemplatesForType(weaponType) {
     const type = String(weaponType || "").trim();
@@ -2170,6 +2185,68 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
   }
 
 
+  /** Build the checklist markup for the common situational roll modifiers */
+  static _situationalModifiersListHtml() {
+    return SITUATIONAL_MODIFIERS.map(m => `
+      <label style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:4px 6px;border:1px solid #a33;margin-bottom:3px;">
+        <span>${m.label}</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span>${m.value >= 0 ? '+' : ''}${m.value}</span>
+          <input type="checkbox" class="sit-mod-check" data-value="${m.value}"/>
+        </span>
+      </label>
+    `).join('');
+  }
+
+  /** Prompt for a roll modifier/difficulty, including optional situational modifiers. Returns {mod, difficulty} or null if cancelled. */
+  async _promptRollModifiers(title) {
+    try {
+      return await Dialog.prompt({
+        title,
+        content: `
+          <div style="margin-bottom: 10px;">
+            <label>Modifier:</label>
+            <input type="number" name="mod" value="0" style="width:100%"/>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label>${game.i18n.localize('MF.RollDifficultyPrompt')}:</label>
+            <input type="number" name="difficulty" placeholder="Optional" style="width:100%"/>
+          </div>
+          <div style="margin: 8px 0;">
+            <strong>Situational Modifiers Total: <span class="sit-mod-total">+0</span></strong>
+          </div>
+          <details open>
+            <summary style="cursor:pointer;font-weight:bold;">Situational Modifiers</summary>
+            <div style="margin-top:6px;max-height:260px;overflow-y:auto;">
+              ${this.constructor._situationalModifiersListHtml()}
+            </div>
+          </details>
+        `,
+        label: "Roll",
+        options: { width: 480 },
+        render: html => {
+          const sumChecked = () => html.find('.sit-mod-check:checked').toArray()
+            .reduce((acc, el) => acc + Number(el.dataset.value), 0);
+          const updateTotal = () => {
+            const sum = sumChecked();
+            html.find('.sit-mod-total').text(`${sum >= 0 ? '+' : ''}${sum}`);
+          };
+          html.find('.sit-mod-check').on('change', updateTotal);
+          updateTotal();
+        },
+        callback: html => {
+          const modVal = Number(html.find("[name='mod']").val() || 0);
+          const diffVal = html.find("[name='difficulty']").val();
+          const sitSum = html.find('.sit-mod-check:checked').toArray()
+            .reduce((acc, el) => acc + Number(el.dataset.value), 0);
+          return { mod: modVal + sitSum, difficulty: diffVal ? Number(diffVal) : null };
+        }
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
   /** Roll a stat */
   async _onRollStat(ev) {
     ev.preventDefault();
@@ -2182,33 +2259,14 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
     
     let mod = 0;
     let difficulty = null;
-    
+
     if (!ev.shiftKey) {
-      try {
-        const result = await Dialog.prompt({
-          title: game.i18n.format('MF.RollSimple', { name: stat }),
-          content: `
-            <div style="margin-bottom: 10px;">
-              <label>Modifier:</label>
-              <input type="number" name="mod" value="0" style="width:100%"/>
-            </div>
-            <div>
-              <label>${game.i18n.localize('MF.RollDifficultyPrompt')}:</label>
-              <input type="number" name="difficulty" placeholder="Optional" style="width:100%"/>
-            </div>
-          `,
-          label: "Roll",
-          callback: html => {
-            const modVal = Number(html.find("[name='mod']").val() || 0);
-            const diffVal = html.find("[name='difficulty']").val();
-            return { mod: modVal, difficulty: diffVal ? Number(diffVal) : null };
-          }
-        });
-        mod = result.mod || 0;
-        difficulty = result.difficulty;
-      } catch (_) { return; }
+      const result = await this._promptRollModifiers(game.i18n.format('MF.RollSimple', { name: stat }));
+      if (!result) return;
+      mod = result.mod || 0;
+      difficulty = result.difficulty;
     }
-    
+
     const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await this.constructor._rollBidirectionalExplodingD10();
     const finalTotal = base + statVal + (mod||0);
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
@@ -2289,31 +2347,12 @@ export class LongDriftActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     let mod = 0;
     let difficulty = null;
-    
+
     if (!ev.shiftKey) {
-      try {
-        const result = await Dialog.prompt({
-          title: game.i18n.format('MF.RollSimple', { name: skill.name }),
-          content: `
-            <div style="margin-bottom: 10px;">
-              <label>Modifier:</label>
-              <input type="number" name="mod" value="0" style="width:100%"/>
-            </div>
-            <div>
-              <label>${game.i18n.localize('MF.RollDifficultyPrompt')}:</label>
-              <input type="number" name="difficulty" placeholder="Optional" style="width:100%"/>
-            </div>
-          `,
-          label: "Roll",
-          callback: html => {
-            const modVal = Number(html.find("[name='mod']").val() || 0);
-            const diffVal = html.find("[name='difficulty']").val();
-            return { mod: modVal, difficulty: diffVal ? Number(diffVal) : null };
-          }
-        });
-        mod = result.mod || 0;
-        difficulty = result.difficulty;
-      } catch (_) { return; }
+      const result = await this._promptRollModifiers(game.i18n.format('MF.RollSimple', { name: skill.name }));
+      if (!result) return;
+      mod = result.mod || 0;
+      difficulty = result.difficulty;
     }
     
     const { roll, total: base, plusDice, minusDice, capped, maxExtra } = await this.constructor._rollBidirectionalExplodingD10();
